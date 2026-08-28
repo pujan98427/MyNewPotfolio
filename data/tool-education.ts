@@ -5,6 +5,7 @@ export type ToolEducation = {
   howItWorks:string;
   steps:readonly string[];
   privacy:string;
+  sections?:readonly {heading:string;body:string}[];
   commonProblems:readonly {title:string;body:string}[];
   related:readonly {href:string;label:string;description:string}[];
 };
@@ -17,6 +18,15 @@ export const toolEducation:readonly ToolEducation[]=[
     howItWorks:"Encoding converts the SVG’s UTF-8 bytes into Base64 rather than applying btoa directly to JavaScript text, which would fail for many non-ASCII characters. Decoding reverses those bytes with a strict UTF-8 decoder, checks the size limit, and confirms that the result contains an SVG root before offering it as markup or a download.",
     steps:["Paste complete SVG markup or choose a local .svg file; the source should include an <svg> root element.","Select Encode to produce plain Base64 and a ready-to-use data:image/svg+xml;base64 URI.","For the reverse direction, paste either plain Base64 or a complete SVG Base64 data URI into the Decode field.","Review the decoded markup, copy only the format your implementation needs, and test the resulting asset in its actual context."],
     privacy:"Conversion happens entirely in your browser. Pasted markup, decoded data, and selected SVG files are not sent to the server, saved to an account, or added to Web Doctor history.",
+    sections:[
+      {heading:"What is SVG Base64 encoding?",body:"Base64 represents the UTF-8 bytes of an SVG document with a restricted set of text characters. The result can travel inside a data URI, CSS declaration, or HTML image source without referring to a separate file."},
+      {heading:"How to convert SVG to Base64",body:"Paste complete SVG markup or choose an .svg file, then select Encode SVG. Copy raw Base64 when another system supplies the data-URI wrapper, or copy the complete data URI when you need a ready-to-use source."},
+      {heading:"How to decode Base64 back to SVG",body:"Switch to Base64 → SVG and paste either raw Base64 or a complete SVG data URI. Decode it, review the readable XML, then copy the exact SVG source or download it as an .svg file."},
+      {heading:"Base64 vs URL-encoded SVG",body:"Base64 is widely supported and predictable, but it usually makes SVG text larger. URL encoding keeps much of the SVG readable and can produce a smaller CSS data URI. Compare both advanced outputs in the context where you will use them."},
+      {heading:"When should you embed SVG as Base64?",body:"Inline data is useful for small, self-contained graphics that belong to one component or document. Prefer a normal SVG file when artwork is large, reused across pages, changed independently, or should benefit from browser caching."},
+      {heading:"Does this tool upload my SVG?",body:"No. Encoding, decoding, size calculations, formatting, and preview preparation run locally in your browser. Your SVG content is not submitted to this site or stored in an account."},
+      {heading:"Common SVG Base64 problems",body:"Typical problems include copying raw Base64 where a complete data URI is expected, broken Unicode from naive btoa() conversion, unescaped # characters in CSS, incomplete SVG roots, and embedding files that are too large to be useful inline."},
+    ],
     commonProblems:[
       {title:"Unicode is encoded incorrectly",body:"Direct btoa() calls cannot represent arbitrary Unicode. This tool encodes UTF-8 bytes so text, symbols, and international characters survive the round trip."},
       {title:"A complete data URI is used where Base64 is expected",body:"Some APIs want only the encoded payload; CSS and HTML image sources often accept the data URI. Copy the output that matches the receiving field."},

@@ -15,6 +15,7 @@ const staticCards:Record<string,OpenGraphCard>={
   "/about":{title:"A frontend practice built on curiosity.",eyebrow:"About",description:`Experience, education and frontend practice — ${PERSON_NAME}`},
   "/work":{title:"Selected work, considered in context.",eyebrow:"Portfolio",description:"Product interfaces, publishing systems and WordPress case studies."},
   "/lab":{title:"Useful things for the web.",eyebrow:"The Lab",description:"Free tools for developers, designers and website owners."},
+  "/lab/svg-base64-converter":{title:"SVG to Base64 Converter",eyebrow:"Free browser tool · Encode & decode",description:"Convert SVG code and files to Base64—or decode them back to SVG—privately in your browser."},
   "/writing":{title:"Notes from the workbench.",eyebrow:"Writing",description:"Original notes on frontend craft, interaction and performance."},
   "/contact":{title:"Have something interesting in mind?",eyebrow:"Contact",description:`Start a thoughtful frontend conversation with ${PERSON_NAME}.`},
   "/privacy":{title:"Privacy, stated plainly.",eyebrow:"Privacy",description:"How this portfolio and Web Doctor handle public URLs and browser storage."},
