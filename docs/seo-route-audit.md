@@ -461,3 +461,25 @@ Round trips preserve the supplied SVG string rather than trimming it. Automated 
 The decoder accepts either the raw Base64 payload or a complete `data:image/svg+xml;base64,…` value. It detects and removes the data-URI prefix before validating the remaining alphabet, decoding bytes and requiring a complete SVG document.
 
 The output area presents an indented, readable SVG preview while retaining the exact decoded source for the **COPY SVG** and **DOWNLOAD .SVG** actions. This distinction avoids altering meaningful source whitespace merely to improve visual presentation. **CLEAR** resets both conversion directions, output, errors, copy feedback and the selected local file without reloading the page.
+
+### B6 automatic direction detection
+
+The converter exposes two direction tabs while retaining separate state for both inputs. Pasting a document that confidently begins with an SVG root selects **SVG → Base64** and encodes it. Pasting a complete `data:image/svg+xml;base64,` value selects **Base64 → SVG** and decodes it. The optional XML declaration before an SVG root is recognised.
+
+Raw Base64 and ordinary text are deliberately treated as uncertain by the direction detector. They remain in the field and mode where the user pasted them, so detection never guesses based on a short Base64-looking string. Switching either manually or automatically does not clear the other input; deletion happens only through the explicit **CLEAR** action.
+
+### B7 live preview
+
+A dedicated preview region renders the current SVG in an image context with an accessible alternative and busy state. The preview is never an iframe, `srcDoc`, `dangerouslySetInnerHTML` or direct injection of submitted markup into the page.
+
+Before rendering, a browser XML parser requires a valid SVG root. The preview copy removes scripts, embedded HTML/documents, external images, `<use>` references, style elements, event-handler attributes, external href values and URL-based inline styles. The original editor and downloadable source remain unchanged; sanitisation applies only to the visual preview.
+
+Preview work is delayed by 180 ms and cancelled whenever another keystroke arrives. This keeps textarea input responsive instead of parsing and serialising a large document for every character. The shared 1 MB byte limit is checked before parsing, and invalid or incomplete markup produces a quiet preview placeholder rather than blocking the editor.
+
+### B8 SVG preview security
+
+All supplied SVG is treated as untrusted. Conversion is a text/byte operation and preserves the submitted source; previewing is a separate pipeline. Raw markup is never assigned through `dangerouslySetInnerHTML`, `srcDoc`, an iframe or direct DOM insertion.
+
+The preview parser rejects document type/entity declarations and malformed XML. Its preview-only copy removes scripts, `foreignObject`, embedded document/object elements, images, `<use>`, styles and links. It also removes every event-handler attribute, external href, `javascript:` value and URL-based attribute. Only the resulting serialized SVG is encoded into an image data URI and rendered through an image element.
+
+The interface labels this area **Preview-safe version**. When sanitization removes content it reports the exact number of removed elements or attributes and states that the change affects the preview only. **COPY SVG**, **DOWNLOAD .SVG**, raw Base64 and data-URI output continue to use the original conversion source, never the sanitized or formatted representation.

@@ -16,6 +16,18 @@ export function encodeSvgBase64(svg:string){
   return btoa(binary);
 }
 
+export function encodeSvgUtf8DataUri(svg:string){
+  const compact=assertSvgMarkup(svg).trim().replace(/>\s+</g,"><").replace(/"/g,"'");
+  const encoded=encodeURIComponent(compact)
+    .replace(/%20/g," ")
+    .replace(/%3A/gi,":")
+    .replace(/%2F/gi,"/")
+    .replace(/%3D/gi,"=")
+    .replace(/%2C/gi,",")
+    .replace(/%[0-9A-F]{2}/g,value=>value.toLowerCase());
+  return `data:image/svg+xml,${encoded}`;
+}
+
 export function decodeSvgBase64(value:string){
   const payload=value.trim().replace(/^data:image\/svg\+xml(?:;charset=[^;,]+)?;base64,/i,"").replace(/\s+/g,"");
   if(!payload)throw new Error("Paste an SVG Base64 value or data URI first.");
