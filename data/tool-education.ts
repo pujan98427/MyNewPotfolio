@@ -34,6 +34,7 @@ export const toolEducation:readonly ToolEducation[]=[
     ],
     related:[
       {href:"/lab/web-doctor",label:"Check a published page",description:"Inspect metadata, images, links, headings, and technical signals from a live URL."},
+      {href:"/lab/meta-generator",label:"Meta Tag Generator",description:"Draft and copy accurate title and description markup for a web page."},
       {href:"/lab/contrast-checker",label:"Check SVG colour contrast",description:"Test foreground and background pairs used in icons or illustrations."},
       {href:"/lab/clamp-generator",label:"Generate fluid CSS",description:"Create bounded responsive values for interface sizing and spacing."},
     ],

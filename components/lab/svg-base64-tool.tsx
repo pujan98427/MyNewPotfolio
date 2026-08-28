@@ -10,6 +10,15 @@ type OutputTab="base64"|"data-uri";
 type AdvancedFormat="base64"|"url-encoded";
 type Direction="encode"|"decode";
 
+const EXAMPLE_SVG=`<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="120"
+  height="120"
+  viewBox="0 0 120 120"
+>
+  <circle cx="60" cy="60" r="50" />
+</svg>`;
+
 function formatBytes(bytes:number){if(bytes<1024)return `${bytes} B`;const kilobytes=bytes/1024;return `${kilobytes<10?kilobytes.toFixed(1):Math.round(kilobytes)} KB`;}
 
 function detectDirection(value:string):Direction|null{const input=value.trim();if(/^(?:<\?xml[\s\S]*?\?>\s*)?<svg(?:\s|>)/i.test(input))return "encode";if(/^data:image\/svg\+xml(?:;charset=[^;,]+)?;base64,/i.test(input))return "decode";return null;}
@@ -27,7 +36,7 @@ function safePreviewDataUri(source:string){
 }
 
 export function SvgBase64Tool(){
-  const [svg,setSvg]=useState('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">\n  <circle cx="60" cy="60" r="48" fill="#d6f342" />\n  <path d="M38 62l14 14 31-34" fill="none" stroke="#151515" stroke-width="8" />\n</svg>');
+  const [svg,setSvg]=useState("");
   const [base64,setBase64]=useState("");
   const [decodeInput,setDecodeInput]=useState("");
   const [error,setError]=useState("");
@@ -69,7 +78,7 @@ export function SvgBase64Tool(){
     <div className="svg-clear-row"><p>Keyboard friendly: use Ctrl/Cmd + V to paste, Ctrl/Cmd + A to select all, and Ctrl/Cmd + C to copy selected text.</p><button type="button" className="secondary" onClick={reset}><RefreshCw aria-hidden="true" /> Clear</button></div>
     <div className="svg-direction" role="tablist" aria-label="Conversion direction"><button id="direction-encode" type="button" role="tab" aria-selected={direction==="encode"} aria-controls="direction-panel-encode" onClick={()=>setDirection("encode")}>SVG → Base64</button><button id="direction-decode" type="button" role="tab" aria-selected={direction==="decode"} aria-controls="direction-panel-decode" onClick={()=>setDirection("decode")}>Base64 → SVG</button></div>
     <div className="svg-converter-grid">
-      <section id="direction-panel-encode" role="tabpanel" aria-labelledby="direction-encode" hidden={direction!=="encode"}><div className="svg-panel-heading"><span>01</span><div><h3 id="encode-svg-heading">SVG to Base64</h3><p>Paste markup, choose a file, or drop an SVG below.</p></div></div><label htmlFor="svg-source">SVG markup</label><textarea id="svg-source" value={svg} spellCheck={false} onPaste={pasteSvg} onChange={event=>{setSvg(event.target.value);setBase64("");setError("");}} /><button type="button" className="svg-drop-zone" data-dragging={dragging||undefined} onClick={()=>fileRef.current?.click()} onDragEnter={dragOver} onDragOver={dragOver} onDragLeave={()=>setDragging(false)} onDrop={dropFile}><FileUp aria-hidden="true" /><span><strong>{dragging?"Drop the SVG here":"Drop an SVG file here"}</strong><small>or choose a local .svg file · maximum 1 MB</small></span></button><div className="svg-actions"><button type="button" onClick={encode}>Encode SVG</button><input ref={fileRef} className="sr-only" type="file" accept=".svg,image/svg+xml" onChange={event=>void selectFile(event.target.files?.[0])} /></div></section>
+      <section id="direction-panel-encode" role="tabpanel" aria-labelledby="direction-encode" hidden={direction!=="encode"}><div className="svg-panel-heading"><span>01</span><div><h3 id="encode-svg-heading">SVG to Base64</h3><p>Paste markup, choose a file, or drop an SVG below.</p></div></div><label htmlFor="svg-source">SVG markup</label><textarea id="svg-source" value={svg} spellCheck={false} placeholder="Paste complete <svg> markup here…" onPaste={pasteSvg} onChange={event=>{setSvg(event.target.value);setBase64("");setError("");}} /><button type="button" className="svg-drop-zone" data-dragging={dragging||undefined} onClick={()=>fileRef.current?.click()} onDragEnter={dragOver} onDragOver={dragOver} onDragLeave={()=>setDragging(false)} onDrop={dropFile}><FileUp aria-hidden="true" /><span><strong>{dragging?"Drop the SVG here":"Drop an SVG file here"}</strong><small>or choose a local .svg file · maximum 1 MB</small></span></button><div className="svg-actions"><button type="button" onClick={encode}>Encode SVG</button><button type="button" className="secondary" onClick={()=>acceptSvg(EXAMPLE_SVG)}>Load example</button><input ref={fileRef} className="sr-only" type="file" accept=".svg,image/svg+xml" onChange={event=>void selectFile(event.target.files?.[0])} /></div></section>
       <section id="direction-panel-decode" role="tabpanel" aria-labelledby="direction-decode" hidden={direction!=="decode"}><div className="svg-panel-heading"><span>02</span><div><h3 id="decode-svg-heading">Base64 to SVG</h3><p>Raw Base64 and complete SVG data URIs are detected automatically.</p></div></div><label htmlFor="svg-base64-source">Base64 input</label><textarea id="svg-base64-source" value={decodeInput} spellCheck={false} onPaste={pasteBase64} placeholder="PHN2ZyB4bWxucz0iLi4u or data:image/svg+xml;base64,…" onChange={event=>{setDecodeInput(event.target.value);setError("");}} /><div className="svg-actions"><button type="button" onClick={decode}>Decode Base64</button></div></section>
     </div>
     {fileInfo&&<dl className="svg-file-info" aria-label="SVG file information"><div><dt>Original size</dt><dd>{formatBytes(fileInfo.originalBytes)}</dd></div><div><dt>Base64 size</dt><dd>{formatBytes(fileInfo.base64Bytes)}</dd></div><div><dt>Difference</dt><dd>{fileInfo.difference>0?"+":""}{fileInfo.difference}%</dd></div><div><dt>Characters</dt><dd>{fileInfo.characters.toLocaleString()}</dd></div></dl>}

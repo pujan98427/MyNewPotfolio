@@ -11,7 +11,9 @@
     "test": "node tests/web-doctor.unit.mjs",
     "test:headings": "node tests/headings.integration.mjs",
     "test:integration": "node --test --test-concurrency=1 tests/web-doctor.test.mjs",
-    "test:status": "node tests/http-status.integration.mjs"
+    "test:status": "node tests/http-status.integration.mjs",
+    "audit:links": "node scripts/audit-internal-links.mjs",
+    "audit:links:production": "npm run build && npm run audit:links"
   },
   "dependencies": {
     "lucide-react": "latest",
