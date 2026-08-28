@@ -1,0 +1,11 @@
+"use client";
+import { useMemo, useState } from "react";
+import { CopySnippet } from "@/components/ui/copy-snippet";
+
+function numeric(value:string,fallback:number){const parsed=Number(value);return Number.isFinite(parsed)?parsed:fallback;}
+export function ClampTool(){
+  const [minimum,setMinimum]=useState("16"); const [maximum,setMaximum]=useState("48");
+  const [minViewport,setMinViewport]=useState("320"); const [maxViewport,setMaxViewport]=useState("1440");
+  const formula=useMemo(()=>{const min=numeric(minimum,16);const max=numeric(maximum,48);const low=numeric(minViewport,320);const high=numeric(maxViewport,1440);if(high<=low||max<min)return null;const slope=(max-min)/(high-low)*100;const intercept=(min-slope*low/100)/16;return `clamp(${(min/16).toFixed(4).replace(/0+$/,'').replace(/\.$/,'')}rem, ${intercept.toFixed(4).replace(/0+$/,'').replace(/\.$/,'')}rem + ${slope.toFixed(4).replace(/0+$/,'').replace(/\.$/,'')}vw, ${(max/16).toFixed(4).replace(/0+$/,'').replace(/\.$/,'')}rem)`;},[minimum,maximum,minViewport,maxViewport]);
+  return <div className="tool-card clamp-workspace"><div className="field-stack clamp-fields"><div className="field-pair"><label>Minimum size (px)<input inputMode="decimal" value={minimum} onChange={e=>setMinimum(e.target.value)} /></label><label>Maximum size (px)<input inputMode="decimal" value={maximum} onChange={e=>setMaximum(e.target.value)} /></label></div><div className="field-pair"><label>Minimum viewport (px)<input inputMode="numeric" value={minViewport} onChange={e=>setMinViewport(e.target.value)} /></label><label>Maximum viewport (px)<input inputMode="numeric" value={maxViewport} onChange={e=>setMaxViewport(e.target.value)} /></label></div><p className="tool-note">Enter the values you want at the narrowest and widest viewport. The result uses rem for accessible zoom behaviour.</p></div><div className="clamp-preview"><span>Live preview</span><strong style={formula?{fontSize:formula}:undefined}>Fluid type</strong><p>Resize the browser to see the value respond between its minimum and maximum.</p></div><div className="clamp-output" aria-live="polite"><span>Generated CSS</span>{formula?<CopySnippet code={`font-size: ${formula};`} />:<p>Maximum viewport must be larger than minimum viewport, and maximum size cannot be smaller than minimum size.</p>}</div></div>;
+}

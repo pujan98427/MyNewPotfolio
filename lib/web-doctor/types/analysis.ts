@@ -1,0 +1,37 @@
+export type DiagnosticStatus = "pass" | "warning" | "error";
+export type CheckAvailability = "success" | "warning" | "unavailable";
+export type WebDoctorStage = "validating" | "connecting" | "metadata" | "indexability" | "structure" | "social" | "diagnosis";
+export type HeadingAnalysis={items:Array<{level:number;text:string}>;total:number;h1Count:number;emptyCount:number;skippedCount:number};
+export type CanonicalAnalysis={values:string[];count:number;absolute:boolean;malformed:boolean;httpOnHttps:boolean;differentHost:boolean};
+export type IndexabilityAnalysis={metaRobots:string;headerRobots:string;noindex:boolean;nofollow:boolean;usesDefault:boolean};
+export type RobotsAnalysis={found:boolean;url:string;status:number;directives:Array<{name:string;value:string}>;hasBroadDisallow:boolean};
+export type SitemapAnalysis={found:boolean;url:string;status:number;source:"robots.txt"|"/sitemap.xml"|"/sitemap_index.xml"|"none";urlCount:number;sitemapCount:number;isIndex:boolean};
+export type OpenGraphAnalysis={title:string;description:string;image:string;url:string;type:string;siteName:string;imagePreview?:string;imageStatus:"available"|"missing"|"unsafe-or-inaccessible"};
+export type TwitterAnalysis={card:string;title:string;description:string;image:string;fieldCount:number;usesOpenGraphFallback:boolean};
+export type LinkAnalysis={total:number;internal:number;external:number;email:number;telephone:number;http:number;empty:number;hashOnly:number;javascript:number;other:number};
+export type SiteIdentityAnalysis={favicon:{url:string;available:boolean;preview?:string};touchIcon:{url:string;available:boolean;preview?:string};manifest:{url:string;available:boolean;valid:boolean}};
+export type StructuredDataAnalysis={valid:boolean;blocks:number;schemas:number;types:string[];errors:string[]};
+export type HreflangAnalysis={items:Array<{lang:string;href:string}>;invalid:number;duplicates:number};
+export type SecurityBasicsAnalysis={https:boolean;csp:boolean;hsts:boolean;contentTypeOptions:boolean;referrerPolicy:boolean;permissionsPolicy:boolean;frameProtection:boolean};
+export type ContentOverviewAnalysis={words:number;paragraphs:number;headings:number;links:number;images:number;main:boolean;header:boolean;footer:boolean;navigation:boolean};
+export type Diagnostic = { id:string; label:string; status:DiagnosticStatus; availability?:CheckAvailability; value:string; explanation:string; fix?:string; scoreable?:boolean; headingAnalysis?:HeadingAnalysis; canonicalAnalysis?:CanonicalAnalysis; indexabilityAnalysis?:IndexabilityAnalysis; robotsAnalysis?:RobotsAnalysis; sitemapAnalysis?:SitemapAnalysis; openGraphAnalysis?:OpenGraphAnalysis; twitterAnalysis?:TwitterAnalysis; linkAnalysis?:LinkAnalysis; siteIdentityAnalysis?:SiteIdentityAnalysis; structuredDataAnalysis?:StructuredDataAnalysis; hreflangAnalysis?:HreflangAnalysis; securityBasicsAnalysis?:SecurityBasicsAnalysis; contentOverviewAnalysis?:ContentOverviewAnalysis };
+export type AnalysisSummary = { passed:number; warnings:number; errors:number };
+export type ScoreCategory = { id:string; label:string; score:number; maximum:number; checks:Array<{id:string;label:string;weight:number;status:DiagnosticStatus;earned:number;neutral:boolean}> };
+export type WebDoctorReportVersion = 1;
+export type WebDoctorReport = { schemaVersion:WebDoctorReportVersion; url:string; statusCode?:number; checkedAt:string; responseTimeMs?:number; score:number; scoreCategories:ScoreCategory[]; summary:AnalysisSummary; diagnostics:Diagnostic[] };
+export type WebDoctorReportSnapshot = { schemaVersion:WebDoctorReportVersion; url:string; checkedAt:string; score:number; categories:Array<{id:string;score:number;maximum:number}>; findings:Array<{id:string;status:DiagnosticStatus;availability?:CheckAvailability;scoreable?:boolean}> };
+export type WebDoctorComparison = { previous:WebDoctorReportSnapshot; current:WebDoctorReportSnapshot; scoreDelta:number; categories:Array<{id:string;previous:number;current:number;delta:number;maximum:number}>; findings:Array<{id:string;previous?:DiagnosticStatus;current?:DiagnosticStatus;changed:boolean}> };
+export type WebDoctorStreamEvent = {type:"progress";stage:WebDoctorStage;message:string}|{type:"result";report:WebDoctorReport}|{type:"error";error:string};
+export type ProgressReporter = (stage:WebDoctorStage,message:string)=>void;
+export type PublicFile = { ok:boolean; status:number; text:string; url:string; contentType?:string; source?:SitemapAnalysis["source"] };
+export type FetchResult = { html:string; url:string; statusCode:number; responseTimeMs:number; headers:Headers };
+export type AnalysisMode = "html" | "rendered";
+export type DocumentLoader = { mode:AnalysisMode; load:(url:URL)=>Promise<FetchResult> };
+export type CheckContext = { document:ParsedDocument; url:string; manual?:boolean; statusCode?:number; responseTimeMs?:number; headers?:Headers; robots?:PublicFile; sitemap?:PublicFile };
+export type SeoCheck = (context:CheckContext)=>Diagnostic|Diagnostic[]|null|Promise<Diagnostic|Diagnostic[]|null>;
+
+export type ParsedDocument = {
+  html:string; title:string; description:string; language:string; charset:string; canonical:string; canonicals:string[]; viewport:string; robotsMeta:string;
+  headings:Array<{level:number;text:string}>; images:Array<{src:string;alt:string|null}>; links:Array<{href:string;text:string}>;
+  openGraph:Record<string,string>; twitter:Record<string,string>; schemas:string[]; hreflang:Array<{lang:string;href:string}>; favicon:string; touchIcon:string; manifest:string;
+};

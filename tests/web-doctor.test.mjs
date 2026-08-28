@@ -1,0 +1,24 @@
+import assert from "node:assert/strict";
+import {after,before,test} from "node:test";
+import {spawn} from "node:child_process";
+
+const port=3217,origin=`http://127.0.0.1:${port}`;
+let server;
+
+async function waitForServer(){for(let attempt=0;attempt<60;attempt++){try{const response=await fetch(`${origin}/lab/web-doctor`);if(response.ok)return;}catch{}await new Promise(resolve=>setTimeout(resolve,500));}throw new Error("Test server did not become ready.");}
+async function analyse(body){const response=await fetch(`${origin}/api/web-doctor/analyse`,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});assert.equal(response.ok,true);const events=(await response.text()).trim().split("\n").filter(Boolean).map(line=>JSON.parse(line));return {events,result:events.find(event=>event.type==="result")?.report,error:events.find(event=>event.type==="error")?.error};}
+
+before(async()=>{server=spawn(process.execPath,["node_modules/next/dist/bin/next","start","-p",String(port)],{cwd:process.cwd(),env:{...process.env,NODE_ENV:"production"},stdio:"ignore",windowsHide:true});await waitForServer();});
+after(async()=>{if(server&&!server.killed)server.kill();});
+
+test("manual static HTML produces real extracted values",async()=>{const html='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fixture page title</title><meta name="description" content="A factual fixture description used to verify deterministic HTML analysis without external crawling."></head><body><main><h1>Fixture heading</h1><p>Visible fixture content.</p></main></body></html>';const {result,error}=await analyse({html,url:"https://fixture.example.org/page"});assert.equal(error,undefined);assert.equal(result.schemaVersion,1);assert.equal(result.diagnostics.find(item=>item.id==="title").value,"Fixture page title");assert.equal(result.diagnostics.find(item=>item.id==="language").value,"en");assert.equal("html" in result,false);});
+
+test("intentionally incomplete HTML returns a useful report rather than crashing",async()=>{const {result,error}=await analyse({html:"<!doctype html><html><head></head><body><p>Small fixture.</p></body></html>",url:"https://fixture.example.org/incomplete"});assert.equal(error,undefined);assert.ok(result.diagnostics.length>10);assert.equal(result.diagnostics.find(item=>item.id==="title").value,"Not found");assert.equal(result.diagnostics.find(item=>item.id==="description").value,"Missing");});
+
+test("noindex fixture is marked important and explained",async()=>{const html='<!doctype html><html lang="en"><head><title>Private campaign preview</title><meta name="robots" content="noindex, follow"></head><body><main><h1>Preview</h1></main></body></html>';const {result}=await analyse({html,url:"https://fixture.example.org/noindex"});const finding=result.diagnostics.find(item=>item.id==="indexing");assert.equal(finding.status,"error");assert.match(finding.value,/noindex/i);assert.match(finding.explanation,/not to include|noindex|index/i);});
+
+test("private and internal URL attempts are rejected without internal errors",async()=>{for(const url of ["http://localhost","http://127.0.0.1","http://10.0.0.1","http://169.254.169.254","http://[::1]","file:///etc/passwd"]){const {result,error}=await analyse({url});assert.equal(result,undefined,url);assert.equal(typeof error,"string",url);assert.doesNotMatch(error,/TypeError|ECONN|stack|fetch failed/i,url);}});
+
+test("legacy redirects are permanent and relevant while unmatched pages stay missing",async()=>{for(const [source,destination] of [["/home","/"],["/index.html","/"],["/index.php","/"],["/contact.html","/contact"],["/external/index.html","/"],["/external/contact.html","/contact"],["/old-portfolio/index.php","/"],["/old-portfolio/contact.html","/contact"]]){const response=await fetch(`${origin}${source}`,{redirect:"manual"});assert.ok([301,308].includes(response.status),source);assert.equal(new URL(response.headers.get("location"),origin).pathname,destination,source);}for(const source of ["/portfolio-details.html","/threeJsAnimation.html","/mail.php","/retired-page-with-no-match"]){const response=await fetch(`${origin}${source}`,{redirect:"manual"});assert.equal(response.status,404,source);}});
+
+test("robots and sitemap expose only public canonical routes",async()=>{const robots=await (await fetch(`${origin}/robots.txt`)).text();assert.match(robots,/Disallow: \/api\//);assert.match(robots,/https:\/\/poojanchapagain\.com\.np\/sitemap\.xml/);const sitemap=await (await fetch(`${origin}/sitemap.xml`)).text();assert.match(sitemap,/https:\/\/poojanchapagain\.com\.np\/lab\/web-doctor/);assert.doesNotMatch(sitemap,/\/api\/|seo-checker|\?/);});
