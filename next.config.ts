@@ -3,13 +3,16 @@ import { SITE_HOSTNAME, SITE_URL } from "./lib/site-config";
 import { LEGACY_REDIRECTS } from "./lib/seo/legacy-redirects";
 
 const isDevelopment=process.env.NODE_ENV!=="production";
+const turnstileOrigin="https://challenges.cloudflare.com";
+const turnstileEnabled=Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim());
 const contentSecurityPolicy=[
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment?" 'unsafe-eval'":""}`,
+  `script-src 'self' 'unsafe-inline'${isDevelopment?" 'unsafe-eval'":""}${turnstileEnabled?` ${turnstileOrigin}`:""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
   `connect-src 'self'${isDevelopment?" ws: wss:":""}`,
+  `frame-src 'self'${turnstileEnabled?` ${turnstileOrigin}`:""}`,
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
