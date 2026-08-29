@@ -57,7 +57,7 @@ export function SvgBase64Tool(){
   const fileInfo=useMemo(()=>{try{const encoded=encodeSvgBase64(svg),originalBytes=new TextEncoder().encode(svg).byteLength,base64Bytes=new TextEncoder().encode(encoded).byteLength,difference=originalBytes?Math.round(((base64Bytes-originalBytes)/originalBytes)*100):0;return {originalBytes,base64Bytes,difference,characters:Array.from(svg).length};}catch{return null;}},[svg]);
   const formattedSvg=useMemo(()=>{try{return svg?formatSvgMarkup(svg):"";}catch{return svg;}},[svg]);
 
-  useEffect(()=>{setPreviewPending(Boolean(svg));const timer=window.setTimeout(()=>{try{const preview=svg?safePreviewDataUri(svg):null;setPreviewUri(preview?.uri??null);setPreviewRemoved(preview?.removed??0);}catch{setPreviewUri(null);setPreviewRemoved(0);}setPreviewPending(false);},180);return()=>window.clearTimeout(timer);},[svg]);
+  useEffect(()=>{const pendingTimer=window.setTimeout(()=>setPreviewPending(Boolean(svg)),0);const previewTimer=window.setTimeout(()=>{try{const preview=svg?safePreviewDataUri(svg):null;setPreviewUri(preview?.uri??null);setPreviewRemoved(preview?.removed??0);}catch{setPreviewUri(null);setPreviewRemoved(0);}setPreviewPending(false);},180);return()=>{window.clearTimeout(pendingTimer);window.clearTimeout(previewTimer);};},[svg]);
 
   function acceptSvg(source:string){try{const encoded=encodeSvgBase64(source);setSvg(source);setBase64(encoded);setError("");}catch(cause){setBase64("");setError(cause instanceof Error?cause.message:"The SVG could not be encoded.");}}
   function encode(){acceptSvg(svg);}
