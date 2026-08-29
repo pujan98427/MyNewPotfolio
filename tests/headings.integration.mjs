@@ -64,7 +64,6 @@ try{
     const entities=jsonLdEntities(html),types=entities.map(entity=>entity?.["@type"]);
     for(const entity of entities){assert.equal(entity?.["@context"],"https://schema.org",`${route} has a non-Schema.org JSON-LD context`);assert.equal(typeof entity?.["@type"],"string",`${route} has an untyped JSON-LD entity`);assert.doesNotMatch(JSON.stringify(entity),/aggregateRating|reviewCount|priceCurrency|offers/i,`${route} contains unsupported commercial or review claims`);}
     if(route==="/"){assert.ok(types.includes("Person"));assert.ok(types.includes("WebSite"));}
-    if(route.startsWith("/work/")){assert.ok(types.includes("CreativeWork"),`${route} needs CreativeWork data`);assert.ok(types.includes("BreadcrumbList"),`${route} needs breadcrumb data`);}
     if(route.startsWith("/lab/")&&route!=="/lab/web-doctor/changelog"){assert.ok(types.includes("WebApplication"),`${route} needs WebApplication data`);assert.ok(types.includes("BreadcrumbList"),`${route} needs breadcrumb data`);}
     if(route.startsWith("/guides/")||route.startsWith("/writing/")){assert.ok(types.includes("Article"),`${route} needs Article data`);assert.ok(types.includes("BreadcrumbList"),`${route} needs breadcrumb data`);}
     const ogImage=metaContent(html,"property","og:image"),twitterImage=metaContent(html,"name","twitter:image");
@@ -74,7 +73,7 @@ try{
     assert.equal(metaContent(html,"property","og:image:width"),"1200");assert.equal(metaContent(html,"property","og:image:height"),"630");
     process.stdout.write(`✓ ${route} — ${headings.map(item=>`H${item.level} ${item.text}`).join(" | ")}\n`);
   }
-  for(const path of ["/lab/web-doctor","/work/tripcart","/guides/open-graph"]){const response=await fetch(`${origin}/api/og?path=${encodeURIComponent(path)}`);assert.equal(response.status,200,`${path} sharing image should render`);assert.equal(response.headers.get("content-type"),"image/png");const bytes=(await response.arrayBuffer()).byteLength;assert.ok(bytes>1_000&&bytes<1_000_000,`${path} sharing image should remain lightweight: ${bytes} bytes`);}
+  for(const path of ["/lab/web-doctor","/work","/guides/open-graph"]){const response=await fetch(`${origin}/api/og?path=${encodeURIComponent(path)}`);assert.equal(response.status,200,`${path} sharing image should render`);assert.equal(response.headers.get("content-type"),"image/png");const bytes=(await response.arrayBuffer()).byteLength;assert.ok(bytes>1_000&&bytes<1_000_000,`${path} sharing image should remain lightweight: ${bytes} bytes`);}
   assert.equal((await fetch(`${origin}/api/og?path=${encodeURIComponent("/unknown")}`)).status,404,"unknown image paths must not create arbitrary cards");
   process.stdout.write(`\n${uniqueRoutes.length} public routes passed the rendered heading and JSON-LD audit.\n`);
 }finally{

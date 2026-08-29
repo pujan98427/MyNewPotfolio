@@ -8,10 +8,14 @@ async function request(path){
 
 let checks=0;
 
-for(const path of ["/","/about","/work","/work/tripcart","/lab/web-doctor","/guides/title-tags"]){
+for(const path of ["/","/about","/work","/lab/web-doctor","/guides/title-tags"]){
   const response=await request(path);
   assert.equal(response.status,200,`${path} should return 200`);
   checks++;
+}
+for(const path of ["/work/tripcart","/work/coachpodium"]){
+  const response=await request(path);
+  assert.equal(response.status,404,`${path} should remain removed employer work`);
 }
 
 for(const [source,destination] of [["/home","/"],["/contact.html","/contact"],["/lab/seo-checker","/lab/web-doctor"]]){

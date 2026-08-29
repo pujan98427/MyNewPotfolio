@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import process from "node:process";
 import { gzipSync } from "node:zlib";
 
-const routes=["/","/lab","/lab/web-doctor","/lab/svg-base64-converter","/work","/work/tripcart","/guides/title-tags"];
+const routes=["/","/lab","/lab/web-doctor","/lab/svg-base64-converter","/work","/about","/guides/title-tags"];
 const arg=name=>process.argv.slice(2).find(value=>value.startsWith(`${name}=`))?.slice(name.length+1);
 const suppliedUrl=arg("--url"),port=Number(arg("--port")??4321),origin=new URL(suppliedUrl??`http://127.0.0.1:${port}`).origin;
 const shouldStart=!process.argv.includes("--no-start")&&!suppliedUrl;

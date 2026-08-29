@@ -12,6 +12,11 @@ export type ProductEventMap={
   guide_opened:{guideSlug:string;findingId:string};
   report_printed:{scoreBand:ScoreBand};
   diagnosis_feedback:{useful:boolean;reason?:FeedbackReason};
+  contact_opened:Record<string,never>;
+  contact_started:Record<string,never>;
+  contact_submitted:Record<string,never>;
+  contact_success:Record<string,never>;
+  contact_error:Record<string,never>;
 };
 
 export interface ProductAnalyticsAdapter{track<Name extends keyof ProductEventMap>(name:Name,properties:ProductEventMap[Name]):void;}

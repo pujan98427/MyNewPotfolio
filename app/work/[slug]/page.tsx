@@ -1,5 +1,0 @@
-import type { Metadata } from "next"; import { notFound } from "next/navigation"; import { getProjectCaseStudy, projects } from "@/data/projects"; import { CaseStudy } from "@/components/work/case-study"; import { createPageMetadata } from "@/lib/seo/metadata";
-type Props={ params:Promise<{slug:string}> };
-export function generateStaticParams(){ return projects.map(({slug})=>({slug})); }
-export async function generateMetadata({params}:Props):Promise<Metadata>{ const project=getProjectCaseStudy((await params).slug); if(!project)return{}; return createPageMetadata({title:`${project.title} Case Study`,description:project.summary,path:`/work/${project.slug}`,imageAlt:`${project.title} frontend case study`}); }
-export default async function ProjectPage({params}:Props){ const project=getProjectCaseStudy((await params).slug); if(!project)notFound(); const index=projects.findIndex(item=>item.slug===project.slug); return <main id="main" className="case-page"><CaseStudy project={project} index={index} /></main>; }

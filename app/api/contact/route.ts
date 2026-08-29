@@ -2,15 +2,16 @@ import { NextRequest } from "next/server";
 import { SITE_URL } from "@/lib/site-config";
 import { CONTACT_LIMITS,validateContactInput } from "@/lib/contact/validation";
 import { bestEffortContactRateLimit } from "@/lib/contact/rate-limit";
-import { sendContactEmail } from "@/lib/contact/resend";
+import { contactDeliveryIsEnabled,sendContactEmail } from "@/lib/contact/resend";
 import { logContactFailure } from "@/lib/contact/diagnostics";
 import { verifyTurnstileToken } from "@/lib/contact/turnstile";
 import { browserRequestOriginIsAllowed } from "@/lib/contact/request-origin";
+import type { ContactErrorCode,ContactResponse } from "@/lib/contact/types";
 
 export const runtime="nodejs";
 const responseHeaders={"cache-control":"private, no-store, max-age=0","pragma":"no-cache","expires":"0","vary":"Origin","content-type":"application/json; charset=utf-8"};
-const json=(body:unknown,status=200,extra:HeadersInit={})=>Response.json(body,{status,headers:{...extra,...responseHeaders}});
-const failure=(code:string,message:string,status:number,extra:HeadersInit={})=>json({ok:false,code,message},status,extra);
+const json=(body:ContactResponse,status=200,extra:HeadersInit={})=>Response.json(body,{status,headers:{...extra,...responseHeaders}});
+const failure=(code:ContactErrorCode,message:string,status:number,extra:HeadersInit={})=>json({ok:false,code,message},status,extra);
 
 export async function POST(request:NextRequest){
   const origin=request.headers.get("origin");
@@ -32,6 +33,6 @@ export async function POST(request:NextRequest){
     if(turnstile.reason==="missing-token"||turnstile.reason==="rejected")return failure("SECURITY_CHECK_FAILED","Please complete the security check and try again.",400);
     return failure("SECURITY_CHECK_UNAVAILABLE","The security check is temporarily unavailable. Please try again.",503);
   }
-  try{await sendContactEmail(contact);return json({ok:true});}
+  try{if(!contactDeliveryIsEnabled())return failure("DELIVERY_DISABLED","Contact delivery is disabled in this environment.",503);await sendContactEmail(contact);return json({ok:true});}
   catch(error){logContactFailure(contact.requestId,error);return failure("SEND_FAILED","Message could not be sent right now.",502);}
 }

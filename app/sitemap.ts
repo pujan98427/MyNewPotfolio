@@ -1,5 +1,4 @@
 import type { MetadataRoute } from "next";
-import { projects } from "@/data/projects";
 import { articles } from "@/data/writing";
 import { labTools } from "@/data/lab-tools";
 import { webGuides } from "@/data/web-guides";
@@ -12,7 +11,6 @@ export default function sitemap():MetadataRoute.Sitemap{
   const entries:MetadataRoute.Sitemap=[
     ...INDEXABLE_STATIC_ROUTES.map(path=>entry(path,{changeFrequency:path==="/"?"monthly":"yearly",priority:path==="/"?1:.7})),
     ...labTools.map(tool=>entry(`/lab/${tool.slug}`,{changeFrequency:"monthly",priority:.8})),
-    ...projects.map(project=>entry(`/work/${project.slug}`,{changeFrequency:"yearly",priority:.7})),
     ...webGuides.map(guide=>entry(`/guides/${guide.slug}`,{changeFrequency:"yearly",priority:.7})),
     // Writing records contain real authored publication dates. Other entries
     // deliberately omit lastModified until an authoritative date is stored.
