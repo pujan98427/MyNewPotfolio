@@ -177,6 +177,10 @@ img { display:block; }
 .project-meta h2,.project-meta h3 { font-family:var(--font-display); font-size:clamp(2rem,4vw,4.2rem); font-weight:400; letter-spacing:-.04em; line-height:1; margin:0 0 .8rem; }
 .project-meta p { margin:0; max-width:32rem; color:var(--color-muted); line-height:1.5; }
 .project-tags { display:flex; flex-direction:column; gap:.5rem; }
+.project-external-link { display:inline-flex; align-items:center; gap:.55rem; padding:.35rem 0 .55rem; border-bottom:1px solid currentColor; font-size:.7rem; text-transform:uppercase; letter-spacing:.09em; }
+.project-external-link svg { width:1rem; transition:transform var(--animate-duration-base) var(--ease-snap); }
+.project-external-link:hover svg,.project-external-link:focus-visible svg { transform:translate(3px,-3px); }
+.project-external-link:focus-visible { outline:2px solid var(--color-accent); outline-offset:4px; }
 .story-section { border-top:1px solid var(--color-ink); padding-top:var(--spacing-section); overflow:clip; }
 .story-heading { padding-inline:var(--spacing-gutter); margin-bottom:0; }
 .project-story { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(23rem,1fr); align-items:start; }
