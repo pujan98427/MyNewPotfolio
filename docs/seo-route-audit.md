@@ -1,5 +1,7 @@
 # Public route SEO audit
 
+> Historical note: employer case-study rows in this original audit are no longer current. The routes were removed for work-privacy reasons and are tracked in `docs/removed-employer-routes.md`; they are not sitemap entries or redirect targets.
+
 Audit date: 2026-08-27  
 Preferred origin: `https://poojanchapagain.com.np`  
 Scope: App Router source, structured content collections, sitemap generation and discoverable internal links.
