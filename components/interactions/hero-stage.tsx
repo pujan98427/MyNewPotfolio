@@ -1,15 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { PERSON_NAME, PERSON_ROLE } from "@/lib/identity";
-import { useMagneticControl } from "@/components/interactions/use-magnetic-control";
 
 export function HeroStage() {
   const stageRef = useRef<HTMLElement>(null);
-  const primaryCtaMagnet=useMagneticControl<HTMLAnchorElement>();
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -125,7 +122,6 @@ export function HeroStage() {
     </h1>
     <div className="hero-support">
       <p>Frontend developer building fast, thoughtful and interactive web experiences.</p>
-      <div className="hero-actions"><Link className="button button-primary" href="/work" {...primaryCtaMagnet}>Explore my work <ArrowUpRight aria-hidden="true" /></Link><Link className="button button-secondary" href="/lab">Explore the Lab <ArrowUpRight aria-hidden="true" /></Link></div>
     </div>
     <div className="hero-project-canvas hero-original-art">
       <div className="hero-portrait-frame">
@@ -141,6 +137,6 @@ export function HeroStage() {
         </div>
       </div>
     </div>
-    <a className="hero-scroll-cue" href="#selected-work"><span>Scroll to work</span><ArrowDownRight aria-hidden="true" /></a>
+    <a className="hero-scroll-cue" href="#selected-work"><span>Selected work</span><ArrowDown aria-hidden="true" /></a>
   </section>;
 }

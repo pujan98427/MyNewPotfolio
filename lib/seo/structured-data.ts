@@ -5,7 +5,7 @@ export type JsonLdPrimitive=string|number|boolean|null;
 export type JsonLdValue=JsonLdPrimitive|JsonLdNode|readonly JsonLdValue[];
 export type JsonLdNode={readonly [key:string]:JsonLdValue|undefined};
 
-const personReference={"@type":"Person",name:PERSON_NAME,url:absoluteCanonicalUrl("/about")} as const;
+const personReference={"@type":"Person",name:PERSON_NAME,url:absoluteCanonicalUrl("/")} as const;
 
 // Employment and client contributions remain visible profile history only.
 // Do not describe third-party websites as this person's CreativeWork, or add

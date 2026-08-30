@@ -11,12 +11,9 @@ export type OpenGraphCard={title:string;eyebrow:string;description:string};
 
 const staticCards:Record<string,OpenGraphCard>={
   "/":{title:"I turn ideas into interfaces.",eyebrow:"Frontend developer",description:"Selected work, original writing and genuinely useful free web tools."},
-  "/about":{title:"A frontend practice built on curiosity.",eyebrow:"About",description:`Experience, education and frontend practice — ${PERSON_NAME}`},
-  "/work":{title:"Selected contributions, shown with context.",eyebrow:"Portfolio",description:"Frontend and WordPress contributions completed as part of employment teams."},
   "/lab":{title:"Useful things for the web.",eyebrow:"The Lab",description:"Free tools for developers, designers and website owners."},
   "/lab/svg-base64-converter":{title:"SVG to Base64 Converter",eyebrow:"Free browser tool · Encode & decode",description:"Convert SVG code and files to Base64—or decode them back to SVG—privately in your browser."},
   "/writing":{title:"Notes from the workbench.",eyebrow:"Writing",description:"Original notes on frontend craft, interaction and performance."},
-  "/contact":{title:"Have something interesting in mind?",eyebrow:"Contact",description:`Start a thoughtful frontend conversation with ${PERSON_NAME}.`},
   "/privacy":{title:"Privacy, stated plainly.",eyebrow:"Privacy",description:"How this portfolio and Web Doctor handle public URLs and browser storage."},
   "/cookies":{title:"A small, honest storage inventory.",eyebrow:"Cookies",description:"Current browser storage and future consent requirements."},
   "/terms":{title:"Terms for using this site.",eyebrow:"Terms",description:"Working terms for the portfolio, guides and free web tools."},

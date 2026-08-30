@@ -10,11 +10,8 @@
  */
 export const INDEXABLE_STATIC_ROUTES = [
   "/",
-  "/about",
-  "/work",
   "/lab",
   "/writing",
-  "/contact",
   "/privacy",
   "/cookies",
   "/terms",

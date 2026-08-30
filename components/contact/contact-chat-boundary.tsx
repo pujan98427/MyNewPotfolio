@@ -12,7 +12,7 @@ export class ContactChatBoundary extends Component<ContactChatBoundaryProps,Cont
   static getDerivedStateFromError():ContactChatBoundaryState{return {failed:true};}
 
   render():ReactNode{
-    if(this.state.failed)return <aside className="contact-chat-fallback" aria-label="Contact Pujan"><a href="/contact">Contact Pujan</a></aside>;
+    if(this.state.failed)return <aside className="contact-chat-fallback" aria-label="Contact Pujan"><a href="/#contact">Contact Pujan</a></aside>;
     return <ContactChat turnstileSiteKey={this.props.turnstileSiteKey} />;
   }
 }

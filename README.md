@@ -13,11 +13,11 @@ Quality checks: `npm run typecheck`, `npm run lint`, and `npm run build`.
 
 ## Routes
 
-- `/about` — biography, experience, education, and skills
-- `/work` and `/work/[slug]` — project index and individual case studies
+- `/#about`, `/#skills`, `/#experience`, and `/#education` — homepage profile sections
+- `/#selected-work` — concise employment contributions with direct external links
 - `/lab` — SEO checker, metadata generator, contrast checker, and CSS clamp generator
 - `/writing` and `/writing/[slug]` — article index and individual notes
-- `/contact` — direct contact and social links
+- `/#contact` — homepage contact section with the shared floating message form
 
 Structured content lives in `data/`; shared presentation lives in `components/`.
 
