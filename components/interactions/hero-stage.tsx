@@ -5,9 +5,11 @@ import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { PERSON_NAME, PERSON_ROLE } from "@/lib/identity";
+import { useMagneticControl } from "@/components/interactions/use-magnetic-control";
 
 export function HeroStage() {
   const stageRef = useRef<HTMLElement>(null);
+  const primaryCtaMagnet=useMagneticControl<HTMLAnchorElement>();
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -54,7 +56,7 @@ export function HeroStage() {
     <h1 id="hero-title"><span className="hero-word hero-word-one">I turn ideas</span><span className="hero-word hero-word-two">into <em>interfaces.</em></span></h1>
     <div className="hero-support">
       <p>Frontend developer building fast, thoughtful and interactive web experiences.</p>
-      <div className="hero-actions"><Link href="/work">Selected Work <ArrowUpRight aria-hidden="true" /></Link><Link href="/lab">Explore the Lab <ArrowUpRight aria-hidden="true" /></Link></div>
+      <div className="hero-actions"><Link className="button button-primary" href="/work" {...primaryCtaMagnet}>Explore my work <ArrowUpRight aria-hidden="true" /></Link><Link className="button button-secondary" href="/lab">Explore the Lab <ArrowUpRight aria-hidden="true" /></Link></div>
     </div>
     <div className="hero-project-canvas hero-original-art"><Image src="/pujan-chapagain-hero.png" alt={`${PERSON_NAME} wearing sunglasses`} width={1440} height={500} sizes="(max-width: 760px) 135vw, 58vw" priority /></div>
     <a className="hero-scroll-cue" href="#selected-work"><span>Scroll to work</span><ArrowDownRight aria-hidden="true" /></a>

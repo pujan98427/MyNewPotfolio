@@ -4,8 +4,8 @@ import { ArrowRight,ArrowUpRight } from "lucide-react";
 import type { Project } from "@/data/projects";
 
 function ProjectDestination({project}:{project:Project}){
-  if(project.ownership==="personal")return <Link className="project-external-link" href={project.internalPath} aria-label={`Read the ${project.title} case study`}>View case study <ArrowRight aria-hidden="true" /></Link>;
-  return <a className="project-external-link" href={project.url} target="_blank" rel="nofollow noopener noreferrer" aria-label={`Visit the public ${project.title} website in a new tab`}>Visit website <ArrowUpRight aria-hidden="true" /></a>;
+  if(project.ownership==="personal")return <Link className="button button-text project-external-link" href={project.internalPath} aria-label={`Read the ${project.title} case study`}>View case study <ArrowRight aria-hidden="true" /></Link>;
+  return <a className="button button-external project-external-link" href={project.url} target="_blank" rel="nofollow noopener noreferrer" aria-label={`Visit the public ${project.title} website in a new tab`}>Visit website <ArrowUpRight aria-hidden="true" /></a>;
 }
 
 export function ProjectCard({project,index,priority=false}:{project:Project;index:number;priority?:boolean}){
