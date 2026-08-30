@@ -218,15 +218,25 @@ details[open]>summary { color:var(--color-accent); }
 .wordmark { display:flex; align-items:center; gap:.9rem; }
 .wordmark>span { display:grid; place-items:center; width:2.7rem; aspect-ratio:1; background:var(--color-ink); color:var(--color-canvas); font-weight:800; }
 .animated-logo { width:clamp(5.8rem,8vw,7.8rem); height:auto; overflow:visible; }
-.logo-stroke { fill:none; stroke:var(--color-brand); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1; stroke-dashoffset:1; animation:logo-draw var(--duration-editorial) var(--ease-out) forwards; }
-.logo-fill { fill:var(--color-brand); opacity:0; transform-box:fill-box; transform-origin:center; animation:logo-ink-settle var(--duration-medium) var(--ease-smooth) forwards; }
-.logo-part-1 { --logo-delay:80ms; }.logo-part-2 { --logo-delay:170ms; }.logo-part-3 { --logo-delay:330ms; }.logo-part-4 { --logo-delay:430ms; }.logo-part-5 { --logo-delay:530ms; }.logo-part-6 { --logo-delay:630ms; }
-.logo-stroke { animation-delay:var(--logo-delay); }.logo-fill { animation-delay:calc(var(--logo-delay) + 560ms); }
+.animated-logo { --logo-cycle:8s; }
+.logo-stroke { fill:none; stroke:var(--color-brand); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1; stroke-dashoffset:1; opacity:0; animation-duration:var(--logo-cycle); animation-timing-function:linear; animation-iteration-count:infinite; }
+.logo-fill { fill:var(--color-brand); opacity:0; animation-duration:var(--logo-cycle); animation-timing-function:linear; animation-iteration-count:infinite; }
+.logo-letter-p.logo-stroke { animation-name:logo-write-p; }.logo-letter-u.logo-stroke { animation-name:logo-write-u; }.logo-letter-j.logo-stroke { animation-name:logo-write-j; }.logo-letter-a.logo-stroke { animation-name:logo-write-a; }.logo-letter-n.logo-stroke { animation-name:logo-write-n; }
+.logo-letter-p.logo-fill { animation-name:logo-fill-p; }.logo-letter-u.logo-fill { animation-name:logo-fill-u; }.logo-letter-j.logo-fill { animation-name:logo-fill-j; }.logo-letter-a.logo-fill { animation-name:logo-fill-a; }.logo-letter-n.logo-fill { animation-name:logo-fill-n; }
+.logo-segment-arrow { animation-delay:80ms; }
 .logo-glint { fill:none; stroke:color-mix(in srgb,var(--color-brand) 38%,white); stroke-width:1.15; stroke-linecap:round; stroke-dasharray:1; stroke-dashoffset:1; opacity:0; }
 .wordmark:hover .logo-part-2,.wordmark:focus-visible .logo-part-2 { transform:translateX(2px); }
 .wordmark:hover .logo-glint,.wordmark:focus-visible .logo-glint { opacity:.75; animation:logo-glint var(--duration-slow) var(--ease-out) both; }
-@keyframes logo-draw { 0% { stroke-dashoffset:1; opacity:0; } 8% { opacity:1; } 100% { stroke-dashoffset:0; opacity:1; } }
-@keyframes logo-ink-settle { 0% { opacity:0; transform:scale(.975); } 100% { opacity:1; transform:scale(1); } }
+@keyframes logo-write-p { 0% { stroke-dashoffset:1; opacity:0; } 2% { opacity:1; } 14%,88% { stroke-dashoffset:0; opacity:1; } 96%,100% { stroke-dashoffset:0; opacity:0; } }
+@keyframes logo-write-u { 0%,14% { stroke-dashoffset:1; opacity:0; } 16% { opacity:1; } 27%,88% { stroke-dashoffset:0; opacity:1; } 96%,100% { stroke-dashoffset:0; opacity:0; } }
+@keyframes logo-write-j { 0%,27% { stroke-dashoffset:1; opacity:0; } 29% { opacity:1; } 40%,88% { stroke-dashoffset:0; opacity:1; } 96%,100% { stroke-dashoffset:0; opacity:0; } }
+@keyframes logo-write-a { 0%,40% { stroke-dashoffset:1; opacity:0; } 42% { opacity:1; } 53%,88% { stroke-dashoffset:0; opacity:1; } 96%,100% { stroke-dashoffset:0; opacity:0; } }
+@keyframes logo-write-n { 0%,53% { stroke-dashoffset:1; opacity:0; } 55% { opacity:1; } 66%,88% { stroke-dashoffset:0; opacity:1; } 96%,100% { stroke-dashoffset:0; opacity:0; } }
+@keyframes logo-fill-p { 0%,13% { opacity:0; } 16%,88% { opacity:1; } 96%,100% { opacity:0; } }
+@keyframes logo-fill-u { 0%,26% { opacity:0; } 29%,88% { opacity:1; } 96%,100% { opacity:0; } }
+@keyframes logo-fill-j { 0%,39% { opacity:0; } 42%,88% { opacity:1; } 96%,100% { opacity:0; } }
+@keyframes logo-fill-a { 0%,52% { opacity:0; } 55%,88% { opacity:1; } 96%,100% { opacity:0; } }
+@keyframes logo-fill-n { 0%,65% { opacity:0; } 68%,88% { opacity:1; } 96%,100% { opacity:0; } }
 @keyframes logo-glint { from { stroke-dashoffset:1; } to { stroke-dashoffset:0; } }
 .wordmark small { line-height:1.25; font-size:.62rem; }
 .site-header nav { display:flex; gap:2.1rem; }

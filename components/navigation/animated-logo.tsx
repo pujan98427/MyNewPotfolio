@@ -16,7 +16,7 @@ export function AnimatedLogo() {
         {pujanLogoDrawOrder.map((name, index) => (
           <path
             key={name}
-            className={`logo-stroke logo-part-${index + 1}`}
+            className={`logo-stroke logo-letter-${name === "slash" || name === "arrow" ? "p" : name} logo-segment-${name} logo-part-${index + 1}`}
             pathLength="1"
             d={pujanLogoPaths[name]}
           />
@@ -26,7 +26,7 @@ export function AnimatedLogo() {
         {pujanLogoDrawOrder.map((name, index) => (
           <path
             key={name}
-            className={`logo-fill logo-part-${index + 1}`}
+            className={`logo-fill logo-letter-${name === "slash" || name === "arrow" ? "p" : name} logo-segment-${name} logo-part-${index + 1}`}
             d={pujanLogoPaths[name]}
           />
         ))}
