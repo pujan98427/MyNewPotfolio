@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight,ArrowUpRight } from "lucide-react";
 import type { Project } from "@/data/projects";
+import { ParallaxMedia,RevealImage,RevealText } from "@/components/interactions/reveal";
 
 function ProjectDestination({project}:{project:Project}){
   if(project.ownership==="personal")return <Link className="button button-text project-external-link" href={project.internalPath} aria-label={`Read the ${project.title} case study`}>View case study <ArrowRight aria-hidden="true" /></Link>;
@@ -9,5 +10,5 @@ function ProjectDestination({project}:{project:Project}){
 }
 
 export function ProjectCard({project,index,priority=false}:{project:Project;index:number;priority?:boolean}){
-  return <article className="project"><div className="project-media"><Image src={project.image} alt={project.imageAlt} width={project.imageWidth} height={project.imageHeight} sizes="(max-width: 760px) 100vw, 66vw" priority={priority} /></div><div className="project-meta"><span>{String(index+1).padStart(2,"0")}</span><div><p className="eyebrow">{project.relationship}</p><h2>{project.title}</h2><p>{project.summary}</p></div><div className="project-tags"><span>{project.type}</span><span>{project.stack.join(" · ")}</span><span>{project.period}</span></div><ProjectDestination project={project} /></div></article>;
+  return <article className="project"><ParallaxMedia className="project-media"><RevealImage><Image src={project.image} alt={project.imageAlt} width={project.imageWidth} height={project.imageHeight} sizes="(max-width: 760px) 100vw, 66vw" priority={priority} /></RevealImage></ParallaxMedia><div className="project-meta"><span className="project-number">{String(index+1).padStart(2,"0")}</span><div className="project-copy"><p className="eyebrow">{project.relationship}</p><h2><RevealText>{project.title}</RevealText></h2><p>{project.summary}</p></div><div className="project-tags"><span>{project.type}</span><span>{project.stack.join(" · ")}</span><span>{project.period}</span></div><ProjectDestination project={project} /></div></article>;
 }

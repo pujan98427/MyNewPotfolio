@@ -5,13 +5,14 @@ import { projects } from "@/data/projects";
 import { education,experience } from "@/data/experience";
 import { skills } from "@/data/skills";
 import { HeroStage } from "@/components/interactions/hero-stage";
+import { RevealImage,RevealLine,RevealText,SectionIntro } from "@/components/interactions/reveal";
 import { ProjectStory } from "@/components/work/project-story";
 import { ExperienceList } from "@/components/sections/experience-list";
 
 export function HomePage(){return <main id="main">
   <HeroStage />
 
-  <section className="work story-section" id="selected-work"><div className="section-head story-heading"><p className="eyebrow">02 / Selected work</p><h2>Frontend craft,<br />shown honestly.</h2><p>Selected employment contributions, presented without product case studies, business claims or implied ownership.</p></div><ProjectStory projects={projects} /><Link className="large-link story-all-link" href="/work">View the work overview <ArrowUpRight aria-hidden="true" /></Link></section>
+  <section className="work story-section" id="selected-work"><SectionIntro className="section-head story-heading"><p className="eyebrow">02 / Selected work</p><h2><RevealText>Frontend craft,<br />shown honestly.</RevealText></h2><p>Selected employment contributions, presented without product case studies, business claims or implied ownership.</p><RevealLine /></SectionIntro><ProjectStory projects={projects} /><Link className="large-link story-all-link" href="/work">View the work overview <ArrowUpRight aria-hidden="true" /></Link></section>
 
   <section className="home-expertise section" data-section="03" aria-labelledby="home-expertise-heading"><header className="home-overview-head"><p className="eyebrow">03 / Skills &amp; capability</p><h2 id="home-expertise-heading">What I work<br />with.</h2><p>A practical toolkit spanning interface engineering, content systems, design collaboration and everyday workplace software. No percentage scores—just capabilities demonstrated by the work and tools on this site.</p></header><div className="capability-list">{Object.entries(skills).map(([group,items],groupIndex)=><article key={group}><span>{String(groupIndex+1).padStart(2,"0")}</span><h3>{group}</h3><ol>{items.map((item,itemIndex)=><li key={item} data-skill={item}><span>{item}</span><b>{String(itemIndex+1).padStart(2,"0")}</b></li>)}</ol></article>)}</div></section>
 

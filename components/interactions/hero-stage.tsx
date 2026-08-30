@@ -72,7 +72,10 @@ export function HeroStage() {
   return <section className="hero-stage" ref={stageRef} aria-labelledby="hero-title">
     <div className="hero-art" aria-hidden="true"><i /><i /><i /></div>
     <p className="hero-identity"><strong>{PERSON_NAME}</strong><i aria-hidden="true">/</i><span>{PERSON_ROLE}</span></p>
-    <h1 id="hero-title"><span className="hero-word hero-word-one">I turn ideas</span><span className="hero-word hero-word-two">into <em>interfaces.</em></span></h1>
+    <h1 id="hero-title">
+      <span className="hero-line-mask hero-line-one"><span className="hero-word hero-word-one">I turn ideas</span></span>
+      <span className="hero-line-mask hero-line-two"><span className="hero-word hero-word-two">into <em>interfaces.</em></span></span>
+    </h1>
     <div className="hero-support">
       <p>Frontend developer building fast, thoughtful and interactive web experiences.</p>
       <div className="hero-actions"><Link className="button button-primary" href="/work" {...primaryCtaMagnet}>Explore my work <ArrowUpRight aria-hidden="true" /></Link><Link className="button button-secondary" href="/lab">Explore the Lab <ArrowUpRight aria-hidden="true" /></Link></div>
