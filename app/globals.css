@@ -225,7 +225,7 @@ details[open]>summary { color:var(--color-accent); }
 .logo-letter-p.logo-fill { animation-name:logo-fill-p; }.logo-letter-u.logo-fill { animation-name:logo-fill-u; }.logo-letter-j.logo-fill { animation-name:logo-fill-j; }.logo-letter-a.logo-fill { animation-name:logo-fill-a; }.logo-letter-n.logo-fill { animation-name:logo-fill-n; }
 .logo-segment-arrow { animation-delay:80ms; }
 .logo-glint { fill:none; stroke:color-mix(in srgb,var(--color-brand) 38%,white); stroke-width:1.15; stroke-linecap:round; stroke-dasharray:1; stroke-dashoffset:1; opacity:0; }
-.wordmark:hover .logo-part-2,.wordmark:focus-visible .logo-part-2 { transform:translateX(2px); }
+.wordmark:hover .logo-segment-arrow,.wordmark:focus-visible .logo-segment-arrow { transform:translateX(2px); }
 .wordmark:hover .logo-glint,.wordmark:focus-visible .logo-glint { opacity:.75; animation:logo-glint var(--duration-slow) var(--ease-out) both; }
 @keyframes logo-write-p { 0% { stroke-dashoffset:1; opacity:0; } 2% { opacity:1; } 16%,88% { stroke-dashoffset:0; opacity:1; } 96%,100% { stroke-dashoffset:0; opacity:0; } }
 @keyframes logo-write-u { 0%,13% { stroke-dashoffset:1; opacity:0; } 15% { opacity:1; } 29%,88% { stroke-dashoffset:0; opacity:1; } 96%,100% { stroke-dashoffset:0; opacity:0; } }

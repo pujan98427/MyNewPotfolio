@@ -18,3 +18,14 @@ export const pujanLogoPaths = {
 
 export const pujanLogoSourceOrder = ["u", "j", "a", "n", "slash", "arrow"] as const;
 export const pujanLogoDrawOrder = ["slash", "arrow", "u", "j", "a", "n"] as const;
+
+export const pujanLogoLetterGroups = [
+  { letter: "p", paths: ["slash", "arrow"] },
+  { letter: "u", paths: ["u"] },
+  { letter: "j", paths: ["j"] },
+  { letter: "a", paths: ["a"] },
+  { letter: "n", paths: ["n"] },
+] as const satisfies ReadonlyArray<{
+  letter: "p" | "u" | "j" | "a" | "n";
+  paths: ReadonlyArray<keyof typeof pujanLogoPaths>;
+}>;
