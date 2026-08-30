@@ -28,7 +28,20 @@ export function HeroStage() {
         const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2;
         stage.style.setProperty("--pointer-x", x.toFixed(3));
         stage.style.setProperty("--pointer-y", y.toFixed(3));
+        stage.style.setProperty("--hero-pointer-x", `${(x * 3).toFixed(2)}px`);
+        stage.style.setProperty("--hero-pointer-y", `${(y * 3).toFixed(2)}px`);
+        stage.style.setProperty("--hero-rotate-x", `${(y * -1).toFixed(3)}deg`);
+        stage.style.setProperty("--hero-rotate-y", `${x.toFixed(3)}deg`);
       });
+    };
+
+    const resetPointer = () => {
+      stage.style.setProperty("--pointer-x", "0");
+      stage.style.setProperty("--pointer-y", "0");
+      stage.style.setProperty("--hero-pointer-x", "0px");
+      stage.style.setProperty("--hero-pointer-y", "0px");
+      stage.style.setProperty("--hero-rotate-x", "0deg");
+      stage.style.setProperty("--hero-rotate-y", "0deg");
     };
 
     const updateScroll = () => {
@@ -44,12 +57,14 @@ export function HeroStage() {
     };
 
     stage.addEventListener("pointermove", updatePointer, { passive: true });
+    stage.addEventListener("pointerleave", resetPointer);
     window.addEventListener("scroll", updateScroll, { passive: true });
     updateScroll();
 
     return () => {
       cancelAnimationFrame(frame);
       stage.removeEventListener("pointermove", updatePointer);
+      stage.removeEventListener("pointerleave", resetPointer);
       window.removeEventListener("scroll", updateScroll);
     };
   }, []);
