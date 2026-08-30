@@ -12,6 +12,9 @@ export function AnimatedLogo() {
       role="img"
       aria-label="Pujan"
     >
+      {/* pathLength normalizes each path's browser-measured length to 1. This
+          keeps the CSS dash animation exact without guessed pixel lengths or
+          a JavaScript measurement/animation loop. */}
       <g>
         {pujanLogoDrawOrder.map((name, index) => (
           <path
