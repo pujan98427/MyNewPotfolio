@@ -247,8 +247,10 @@ details[open]>summary { color:var(--color-accent); }
 .availability { justify-self:end; display:flex; align-items:center; gap:.5rem; }
 .availability i { width:.5rem; height:.5rem; background:var(--color-positive); }
 .hero-stage { --pointer-x:0; --pointer-y:0; --hero-scroll:0; --hero-clip-top:4%; --hero-clip-bottom:2%; --hero-image-scale:.985; --hero-image-y:0rem; --hero-pointer-x:0px; --hero-pointer-y:0px; --hero-rotate-x:0deg; --hero-rotate-y:0deg; position:relative; min-height:calc(112svh - 82px); padding:clamp(4rem,7vw,7rem) var(--spacing-gutter) 3rem; overflow:hidden; isolation:isolate; border-bottom:1px solid var(--color-ink); }
-.hero-identity { position:relative; z-index:3; margin:0; font-size:var(--text-label); line-height:1; letter-spacing:.13em; text-transform:uppercase; font-weight:700; }
-.hero-identity span { margin-inline:.5rem; color:var(--color-muted); }
+.hero-identity { position:relative; z-index:3; display:flex; flex-wrap:wrap; align-items:baseline; gap:.55rem; margin:0; font-size:var(--text-label); line-height:1; letter-spacing:.13em; text-transform:uppercase; }
+.hero-identity strong { font-weight:800; }
+.hero-identity i { color:var(--color-brand); font-style:normal; }
+.hero-identity span { color:var(--color-muted); font-weight:700; }
 .hero-stage h1 { position:relative; z-index:2; margin:clamp(3rem,7vw,7rem) 0 0; font-family:var(--font-display); font-size:clamp(4.2rem,12.2vw,12rem); font-weight:400; line-height:.76; letter-spacing:-.07em; transform:translate3d(0,calc(var(--hero-scroll) * -3rem),0); }
 .hero-word { display:block; width:max-content; max-width:100%; will-change:transform; transition:transform var(--duration-slow) var(--ease-out); }
 .hero-word-one { transform:translate3d(calc(var(--pointer-x) * 4px),calc(var(--pointer-y) * 3px),0); }
