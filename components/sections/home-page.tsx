@@ -5,7 +5,7 @@ import { projects } from "@/data/projects";
 import { education,experience } from "@/data/experience";
 import { skills } from "@/data/skills";
 import { HeroStage } from "@/components/interactions/hero-stage";
-import { RevealImage,RevealLine,RevealText,SectionIntro } from "@/components/interactions/reveal";
+import { RevealLine,RevealText,SectionIntro } from "@/components/interactions/reveal";
 import { ProjectStory } from "@/components/work/project-story";
 import { ExperienceList } from "@/components/sections/experience-list";
 

@@ -7,6 +7,10 @@ export type JsonLdNode={readonly [key:string]:JsonLdValue|undefined};
 
 const personReference={"@type":"Person",name:PERSON_NAME,url:absoluteCanonicalUrl("/about")} as const;
 
+// Employment and client contributions remain visible profile history only.
+// Do not describe third-party websites as this person's CreativeWork, or add
+// worksFor, endorsements, reviews or organisation relationships without a
+// separately verified and visibly supported reason to make that exact claim.
 export function personStructuredData():JsonLdNode{return {"@context":"https://schema.org","@type":"Person",name:PERSON_NAME,url:absoluteCanonicalUrl("/"),jobTitle:PERSON_ROLE,homeLocation:{"@type":"Place",name:"Glasgow, Scotland"}};}
 export function websiteStructuredData():JsonLdNode{return {"@context":"https://schema.org","@type":"WebSite",name:PERSON_NAME,url:absoluteCanonicalUrl("/"),description:`Frontend work, practical web writing and free tools built by ${PERSON_NAME}.`,inLanguage:"en-GB",creator:personReference};}
 export function breadcrumbStructuredData(items:readonly {label:string;href:string}[]):JsonLdNode{return {"@context":"https://schema.org","@type":"BreadcrumbList",itemListElement:items.map((item,index)=>({"@type":"ListItem",position:index+1,name:item.label,item:absoluteCanonicalUrl(item.href)}))};}

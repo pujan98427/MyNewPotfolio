@@ -17,15 +17,20 @@ export function HeroStage() {
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const finePointer = window.matchMedia("(pointer: fine)");
-    let frame = 0;
+    const simpleMobileMotion = window.matchMedia("(max-width: 1024px), (pointer: coarse)");
+    let pointerFrame=0,scrollFrame=0,stageHeight=Math.max(stage.getBoundingClientRect().height,1),effectsActive=false;
+    let pointerClientX=0,pointerClientY=0;
 
     const updatePointer = (event: PointerEvent) => {
       if (reducedMotion.matches || !finePointer.matches) return;
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
+      pointerClientX=event.clientX;
+      pointerClientY=event.clientY;
+      if(pointerFrame)return;
+      pointerFrame = requestAnimationFrame(() => {
+        pointerFrame=0;
         const bounds = stage.getBoundingClientRect();
-        const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2;
-        const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2;
+        const x = ((pointerClientX - bounds.left) / bounds.width - 0.5) * 2;
+        const y = ((pointerClientY - bounds.top) / bounds.height - 0.5) * 2;
         stage.style.setProperty("--pointer-x", x.toFixed(3));
         stage.style.setProperty("--pointer-y", y.toFixed(3));
         stage.style.setProperty("--hero-pointer-x", `${(x * 3).toFixed(2)}px`);
@@ -36,6 +41,8 @@ export function HeroStage() {
     };
 
     const resetPointer = () => {
+      cancelAnimationFrame(pointerFrame);
+      pointerFrame=0;
       stage.style.setProperty("--pointer-x", "0");
       stage.style.setProperty("--pointer-y", "0");
       stage.style.setProperty("--hero-pointer-x", "0px");
@@ -45,9 +52,10 @@ export function HeroStage() {
     };
 
     const updateScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const progress = Math.min(Math.max(window.scrollY / Math.max(stage.offsetHeight, 1), 0), 1);
+      if(scrollFrame)return;
+      scrollFrame = requestAnimationFrame(() => {
+        scrollFrame=0;
+        const progress = Math.min(Math.max(window.scrollY / stageHeight, 0), 1);
         stage.style.setProperty("--hero-scroll", progress.toFixed(3));
         stage.style.setProperty("--hero-clip-top", `${(4 - progress * 4).toFixed(3)}%`);
         stage.style.setProperty("--hero-clip-bottom", `${(2 - progress * 2).toFixed(3)}%`);
@@ -56,16 +64,55 @@ export function HeroStage() {
       });
     };
 
-    stage.addEventListener("pointermove", updatePointer, { passive: true });
-    stage.addEventListener("pointerleave", resetPointer);
-    window.addEventListener("scroll", updateScroll, { passive: true });
-    updateScroll();
+    const resetScroll = () => {
+      cancelAnimationFrame(scrollFrame);
+      scrollFrame=0;
+      stage.style.setProperty("--hero-scroll", "0");
+      stage.style.setProperty("--hero-clip-top", "4%");
+      stage.style.setProperty("--hero-clip-bottom", "2%");
+      stage.style.setProperty("--hero-image-scale", ".985");
+      stage.style.setProperty("--hero-image-y", "0rem");
+    };
 
-    return () => {
-      cancelAnimationFrame(frame);
+    const sizeObserver=new ResizeObserver(entries=>{
+      stageHeight=Math.max(entries[0]?.contentRect.height??stage.getBoundingClientRect().height,1);
+    });
+
+    const stopEffects=()=>{
+      if(!effectsActive)return;
+      effectsActive=false;
       stage.removeEventListener("pointermove", updatePointer);
       stage.removeEventListener("pointerleave", resetPointer);
       window.removeEventListener("scroll", updateScroll);
+      resetPointer();
+      resetScroll();
+    };
+    const syncEffects=()=>{
+      const shouldRun=!simpleMobileMotion.matches&&!reducedMotion.matches&&document.visibilityState==="visible";
+      if(!shouldRun){stopEffects();return;}
+      if(!effectsActive){
+        effectsActive=true;
+        stage.addEventListener("pointermove", updatePointer, { passive: true });
+        stage.addEventListener("pointerleave", resetPointer);
+        window.addEventListener("scroll", updateScroll, { passive: true });
+      }
+      updateScroll();
+    };
+
+    sizeObserver.observe(stage);
+    simpleMobileMotion.addEventListener("change",syncEffects);
+    reducedMotion.addEventListener("change",syncEffects);
+    finePointer.addEventListener("change",syncEffects);
+    document.addEventListener("visibilitychange",syncEffects);
+    syncEffects();
+
+    return () => {
+      stopEffects();
+      sizeObserver.disconnect();
+      simpleMobileMotion.removeEventListener("change",syncEffects);
+      reducedMotion.removeEventListener("change",syncEffects);
+      finePointer.removeEventListener("change",syncEffects);
+      document.removeEventListener("visibilitychange",syncEffects);
     };
   }, []);
 
@@ -83,7 +130,14 @@ export function HeroStage() {
     <div className="hero-project-canvas hero-original-art">
       <div className="hero-portrait-frame">
         <div className="hero-portrait-entrance">
-          <Image src="/pujan-chapagain-hero.png" alt={`${PERSON_NAME} wearing sunglasses`} width={1440} height={500} sizes="(max-width: 760px) 135vw, 58vw" priority />
+          <Image
+            src="/pujan-chapagain-hero.png"
+            alt={`${PERSON_NAME} wearing sunglasses`}
+            width={1440}
+            height={500}
+            sizes="(max-width: 760px) 135vw, (max-height: 720px) min(60vw, 58rem), (max-height: 900px) min(66vw, 68rem), min(72vw, 82rem)"
+            preload
+          />
         </div>
       </div>
     </div>

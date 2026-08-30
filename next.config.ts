@@ -31,7 +31,7 @@ const alternateHostname=SITE_HOSTNAME.startsWith("www.")?SITE_HOSTNAME.slice(4):
 const nextConfig:NextConfig={
   poweredByHeader:false,
   trailingSlash:false,
-  images:{formats:["image/webp"]},
+  images:{formats:["image/avif","image/webp"]},
   async redirects(){return [
     ...LEGACY_REDIRECTS,
     {source:"/:path*",has:[{type:"host",value:alternateHostname}],destination:`${SITE_URL}/:path*`,permanent:true},

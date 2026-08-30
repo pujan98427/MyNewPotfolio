@@ -4,6 +4,9 @@
  * Dynamic project, guide, writing and Lab-tool URLs are added by app/sitemap.ts
  * from their structured data collections. Keeping exclusions here makes the
  * distinction between public content and application state reviewable.
+ * Employer and client names belong only in factual Work/Experience history.
+ * They must never generate search landing pages, case-study routes or sitemap
+ * entries unless a future project is explicitly reclassified as personally owned.
  */
 export const INDEXABLE_STATIC_ROUTES = [
   "/",
