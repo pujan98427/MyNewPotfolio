@@ -36,6 +36,10 @@ export function HeroStage() {
       frame = requestAnimationFrame(() => {
         const progress = Math.min(Math.max(window.scrollY / Math.max(stage.offsetHeight, 1), 0), 1);
         stage.style.setProperty("--hero-scroll", progress.toFixed(3));
+        stage.style.setProperty("--hero-clip-top", `${(4 - progress * 4).toFixed(3)}%`);
+        stage.style.setProperty("--hero-clip-bottom", `${(2 - progress * 2).toFixed(3)}%`);
+        stage.style.setProperty("--hero-image-scale", (0.985 + progress * 0.015).toFixed(4));
+        stage.style.setProperty("--hero-image-y", `${(progress * 0.75).toFixed(3)}rem`);
       });
     };
 
@@ -58,7 +62,13 @@ export function HeroStage() {
       <p>Frontend developer building fast, thoughtful and interactive web experiences.</p>
       <div className="hero-actions"><Link className="button button-primary" href="/work" {...primaryCtaMagnet}>Explore my work <ArrowUpRight aria-hidden="true" /></Link><Link className="button button-secondary" href="/lab">Explore the Lab <ArrowUpRight aria-hidden="true" /></Link></div>
     </div>
-    <div className="hero-project-canvas hero-original-art"><Image src="/pujan-chapagain-hero.png" alt={`${PERSON_NAME} wearing sunglasses`} width={1440} height={500} sizes="(max-width: 760px) 135vw, 58vw" priority /></div>
+    <div className="hero-project-canvas hero-original-art">
+      <div className="hero-portrait-frame">
+        <div className="hero-portrait-entrance">
+          <Image src="/pujan-chapagain-hero.png" alt={`${PERSON_NAME} wearing sunglasses`} width={1440} height={500} sizes="(max-width: 760px) 135vw, 58vw" priority />
+        </div>
+      </div>
+    </div>
     <a className="hero-scroll-cue" href="#selected-work"><span>Scroll to work</span><ArrowDownRight aria-hidden="true" /></a>
   </section>;
 }
