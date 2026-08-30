@@ -4,7 +4,7 @@ The visual system is defined in Tailwind v4’s CSS-first `@theme` block at the 
 
 ## Visual direction
 
-The site uses a warm editorial canvas, near-black type, a single acid-green accent, and quiet neutral surfaces. Playfair Display carries expressive headings; Manrope carries interface labels and body copy. The hierarchy remains clear with animation disabled: scale, alignment, rules, image proportion, and whitespace do the visual work.
+The site uses a warm editorial canvas, near-black type, Pujan's coral-red brand colour, and quiet neutral surfaces. Playfair Display carries expressive headings; Manrope carries interface labels and body copy. The hierarchy remains clear with animation disabled: scale, alignment, rules, image proportion, and whitespace do the visual work.
 
 ## Type
 
@@ -39,13 +39,17 @@ Smaller gaps should use Tailwind’s default spacing scale. New arbitrary spacin
 | --- | --- | --- |
 | `canvas` | `#f0eee8` | Primary warm background |
 | `ink` | `#151515` | Main type and inverted section background |
-| `accent` | `#d6f342` | One expressive highlight |
-| `muted` | `#65645f` | Secondary text |
+| `brand` | `#e45447` | Permanent brand colour on dark surfaces and larger accents |
+| `accent` | `var(--color-brand)` | Semantic alias for the base brand colour |
+| `brand-soft` | 14% brand mix | Quiet tinted surfaces and hover backgrounds |
+| `brand-medium` | 32% brand mix | Focus halo and stronger translucent emphasis |
+| `brand-strong` | `#b43d33` | Contrast-safe small text and links on the warm canvas |
+| `muted` | `#5b5a56` | Secondary text |
 | `subtle` | `#bbb9b2` | Text on dark sections |
 | `surface` | `#d9d6cf` | Image loading and quiet surfaces |
-| `positive` | `#4b8700` | Availability and accessible focus indication |
+| `positive` | `#4b8700` | Semantic success and availability indication |
 
-Rules use a 22% mix of ink rather than another colour. White and search-result blue/green are confined to the functional search preview.
+Rules use a 22% mix of ink rather than another colour. The base brand colour reaches 4.92:1 against ink, while the strong variant reaches 4.95:1 against the canvas. Semantic success and error colours remain independent where their meaning matters.
 
 ## Borders and grid
 

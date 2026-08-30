@@ -8,18 +8,21 @@
   --color-canvas: #f0eee8;
   --color-text: #151515;
   --color-ink: var(--color-text);
-  --color-accent: #d6f342;
+  --color-brand: #e45447;
+  --color-accent: var(--color-brand);
+  --color-brand-soft: color-mix(in srgb, var(--color-brand) 14%, transparent);
+  --color-brand-medium: color-mix(in srgb, var(--color-brand) 32%, transparent);
+  --color-brand-strong: #b43d33;
   --color-muted: #5b5a56;
   --color-subtle: #bbb9b2;
   --color-surface: #d9d6cf;
   --color-border: color-mix(in srgb, var(--color-text) 22%, transparent);
   --color-control-border: #77756f;
   --color-link: currentColor;
-  --color-link-hover: #b43d33;
+  --color-link-hover: var(--color-brand-strong);
   --color-focus-ring: #151515;
-  --color-focus-halo: #d6f342;
+  --color-focus-halo: var(--color-brand-medium);
   --color-positive: #4b8700;
-  --color-brand: #e45447;
   --color-error: #9f2f28;
 
   --text-micro: .625rem;
@@ -91,7 +94,6 @@
   /* Component-level semantic aliases keep older selectors on the same palette. */
   --paper: var(--color-canvas);
   --ink: var(--color-ink);
-  --acid: var(--color-accent);
   --muted: var(--color-muted);
   --rule: var(--rule-hairline);
 }
@@ -151,8 +153,8 @@ details[open]>summary { color:var(--color-link-hover); }
 .recent-checks button:not(:disabled):hover { color:var(--color-ink); }
 .recent-checks li>button:first-child:hover,.recent-checks li>button:first-child:focus-visible { padding-left:.75rem; background:var(--color-surface); }
 .social-preview-trigger:hover { color:var(--color-link-hover); }
-/* Lime is reserved for dark surfaces and non-text accents; these light-surface
-   labels use the contrast-safe interaction red (4.95:1 on the canvas). */
+/* The base brand red is reserved for dark surfaces and larger accents; these
+   light-surface labels use the stronger variant (4.95:1 on the canvas). */
 .changelog-page .changelog-version,.search-preview-result h3 { color:var(--color-link-hover); }
 .contact-chat-trigger:active { transform:translateY(1px); }
 .contact-chat-dialog header button:hover { background:var(--color-ink); color:var(--color-canvas); }
