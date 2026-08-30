@@ -1,7 +1,7 @@
 export const experience = [
-  { period:"2019", company:"Spark Technology", place:"Kathmandu", role:"Frontend Developer · Intern", detail:"Built custom landing pages for Bajaj Bhavisyawani, Prisma Advertising, and Aura." },
-  { period:"2019—2021", company:"WEN Solutions", place:"Kupondole, Lalitpur", role:"UI/UX Designer & Frontend Developer", detail:"Designed 20+ interfaces, delivered 20+ WordPress themes, and supported 10+ custom client projects." },
-  { period:"2021—14 Aug 2025", company:"Codewing Solutions", place:"Chandol, Kathmandu", role:"Frontend Developer", detail:"Built coaching, Elementor, WooCommerce, and Shopify themes; contributed to CoachPodium in Vue and Coach Profile in Next.js." }
+  { period:"2019", company:"Spark Technology", place:"Kathmandu", role:"Frontend Developer · Intern", technologies:["Frontend development","Responsive UI"], detail:"Supported public-facing landing-page implementation during a frontend internship." },
+  { period:"2019 — 2021", company:"WEN Solutions", place:"Kupondole, Lalitpur", role:"UI/UX Designer & Frontend Developer", technologies:["UI/UX design","WordPress","Frontend development"], detail:"Designed and implemented client interfaces and WordPress themes as part of the delivery team.", url:"https://wensolutions.com/" },
+  { period:"2021 — 14 Aug 2025", company:"Codewing Solutions", place:"Chandol, Kathmandu", role:"Frontend Developer", technologies:["Vue","Next.js","WordPress","WooCommerce","Shopify"], detail:"Delivered frontend application and theme work as part of an employment team until 14 August 2025.", url:"https://codewing.co/" }
 ] as const;
 
 export const education = [
