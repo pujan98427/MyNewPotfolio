@@ -1,7 +1,6 @@
 import { articles } from "@/data/writing";
 import { labTools } from "@/data/lab-tools";
 import { webGuides } from "@/data/web-guides";
-import { PERSON_NAME } from "@/lib/identity";
 import { SITE_URL } from "@/lib/site-config";
 import { assertCanonicalPath, type CanonicalPath } from "@/lib/seo/canonical";
 

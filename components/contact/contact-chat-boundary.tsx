@@ -1,6 +1,7 @@
 "use client";
 
 import { Component,type ReactNode } from "react";
+import Link from "next/link";
 import { ContactChat } from "@/components/contact/contact-chat";
 
 type ContactChatBoundaryProps={turnstileSiteKey:string|null};
@@ -12,7 +13,7 @@ export class ContactChatBoundary extends Component<ContactChatBoundaryProps,Cont
   static getDerivedStateFromError():ContactChatBoundaryState{return {failed:true};}
 
   render():ReactNode{
-    if(this.state.failed)return <aside className="contact-chat-fallback" aria-label="Contact Pujan"><a href="/#contact">Contact Pujan</a></aside>;
+    if(this.state.failed)return <aside className="contact-chat-fallback" aria-label="Contact Pujan"><Link href="/#contact">Contact Pujan</Link></aside>;
     return <ContactChat turnstileSiteKey={this.props.turnstileSiteKey} />;
   }
 }
