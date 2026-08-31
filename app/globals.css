@@ -543,6 +543,11 @@ footer { display:flex; justify-content:space-between; border-top:1px solid var(-
 .prose h2 { margin:0 0 3rem; font-family:var(--font-serif),serif; font-size:clamp(2.5rem,5vw,5rem); font-weight:400; letter-spacing:-.04em; }
 .prose p { max-width:42rem; color:var(--muted); font-size:1.1rem; line-height:1.75; }
 .writing-detail,.tool-page { padding:clamp(6rem,10vw,10rem) 2.2rem 5rem; }
+.article-tool-link,.tool-note-link a { display:inline-flex; align-items:center; gap:.45rem; width:fit-content; color:var(--color-link); font-size:.78rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; }
+.article-tool-link { margin-top:2rem; }
+.article-tool-link svg,.tool-note-link svg { width:1rem; transition:transform var(--duration-fast) var(--ease-out); }
+.article-tool-link:is(:hover,:focus-visible) svg,.tool-note-link a:is(:hover,:focus-visible) svg { transform:translate(3px,-3px); }
+.tool-note-link { display:grid; grid-template-columns:minmax(10rem,.5fr) minmax(0,1.5fr); gap:2rem; padding:clamp(2rem,4vw,4rem) 0; border-block:1px solid var(--rule-hairline); }
 .back-link { display:inline-flex; align-items:center; gap:.6rem; margin-bottom:5rem; font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; }
 .back-link svg { width:1rem; }
 .lab-list>a { position:relative; display:grid; grid-template-columns:5rem 1fr auto; align-items:start; gap:2rem; padding:3rem 0; border-top:1px solid var(--rule); overflow:hidden; transition:color var(--duration-fast) var(--ease-smooth),background-color var(--duration-medium) var(--ease-smooth),padding-inline var(--duration-medium) var(--ease-smooth); }

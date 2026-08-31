@@ -90,7 +90,7 @@ export const toolEducation:readonly ToolEducation[]=[
     related:[
       {href:"/lab/contrast-checker",label:"Check colour contrast",description:"Validate readable foreground and background combinations."},
       {href:"/lab/web-doctor",label:"Review a published page",description:"Inspect its mobile viewport, headings, metadata, and technical signals."},
-      {href:"/writing/editorial-grids-for-the-web",label:"Explore editorial grids",description:"See how proportion and rhythm shape responsive composition."},
+      {href:"/writing/using-css-clamp-without-doing-the-maths-every-time",label:"Read the clamp implementation note",description:"See how bounded fluid values work and when a breakpoint is clearer."},
     ],
   },
   {
