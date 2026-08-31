@@ -1,5 +1,5 @@
 /**
- * Immutable geometry transcribed from src/img/logo/logosvg.svg.
+ * Immutable geometry retained from the original PUJAN logo source.
  * Keep source order separate from the animation order: changing either path
  * data or the source viewBox changes the original PUJAN signature mark.
  */

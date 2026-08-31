@@ -6,6 +6,7 @@ import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { JsonLd } from "@/components/seo/json-ld";
 import { articles, getArticle } from "@/data/writing";
 import { getLabTool } from "@/data/lab-tools";
+import { getWebGuide } from "@/data/web-guides";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { articleStructuredData } from "@/lib/seo/structured-data";
 
@@ -16,5 +17,6 @@ export default async function ArticlePage({params}:Props){
   const article=getArticle((await params).slug);
   if(!article)notFound();
   const tool=getLabTool(article.toolSlug);
-  return <main id="main"><article className="writing-detail"><Breadcrumbs items={[{label:"Lab notes",href:"/writing"},{label:article.title,href:`/writing/${article.slug}`}]} /><JsonLd data={articleStructuredData({headline:article.title,description:article.excerpt,path:`/writing/${article.slug}`,datePublished:article.date})} /><Link className="back-link" href="/writing"><ArrowLeft aria-hidden="true" /> All Lab notes</Link><header><p className="eyebrow">{tool?.title} · {article.readingTime}</p><h1>{article.title}</h1><p>{article.excerpt}</p><time dateTime={article.date}>{new Intl.DateTimeFormat("en-GB",{dateStyle:"long"}).format(new Date(article.date))}</time>{tool&&<Link className="article-tool-link" href={`/lab/${tool.slug}`}>Open {tool.title} <ArrowUpRight aria-hidden="true" /></Link>}</header><div className="article-body">{article.sections.map(section=><section key={section.heading}><h2>{section.heading}</h2><p>{section.body}</p></section>)}</div></article></main>;
+  const relatedGuides=(article.relatedGuideSlugs??[]).map(getWebGuide).filter(guide=>guide!==undefined);
+  return <main id="main"><article className="writing-detail"><Breadcrumbs items={[{label:"Lab notes",href:"/writing"},{label:article.title,href:`/writing/${article.slug}`}]} /><JsonLd data={articleStructuredData({headline:article.title,description:article.excerpt,path:`/writing/${article.slug}`,datePublished:article.date})} /><Link className="back-link" href="/writing"><ArrowLeft aria-hidden="true" /> All Lab notes</Link><header><p className="eyebrow">{tool?.title} · {article.readingTime}</p><h1>{article.title}</h1><p>{article.excerpt}</p><time dateTime={article.date}>{new Intl.DateTimeFormat("en-GB",{dateStyle:"long"}).format(new Date(article.date))}</time>{tool&&<Link className="article-tool-link" href={`/lab/${tool.slug}`}>Open {tool.title} <ArrowUpRight aria-hidden="true" /></Link>}</header><div className="article-body">{article.sections.map(section=><section key={section.heading}><h2>{section.heading}</h2><p>{section.body}</p></section>)}{relatedGuides.length>0&&<aside className="article-related-guides" aria-labelledby="related-guides-heading"><h2 id="related-guides-heading">Related guides</h2><ul>{relatedGuides.map(guide=><li key={guide.slug}><Link href={`/guides/${guide.slug}`}>{guide.title}<ArrowUpRight aria-hidden="true" /></Link></li>)}</ul></aside>}</div></article></main>;
 }

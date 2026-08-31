@@ -11,7 +11,7 @@
 - **SEO:** Useful description and Person schema exist, but the name/domain spelling is inconsistent, canonical uses HTTP, social images use invalid relative paths, manifest/favicons point to missing public paths, and there is no sitemap or robust metadata API.
 - **Accessibility:** Missing/descriptive alt text is inconsistent; invalid list markup and `class` attributes exist; empty overlay links have no accessible names; links opening new tabs omit `rel`; the loader blocks non-JS rendering; focus styling and reduced-motion handling are absent.
 - **Performance:** Bootstrap JS/CSS, Swiper, Font Awesome, React Router, React Scroll, EmailJS, analytics, Hotjar, generated CSS, and the whole single-page client tree load up front. Images are not responsively optimized.
-- **Outdated/removable code:** CRA runtime, Bootstrap stack, Swiper carousel, Font Awesome bundle/fonts, `src/js`, generated `.css.map`, duplicate images, legacy jQuery/PHP, loader markup, and unused components can be retired after acceptance.
+- **Retired code:** The CRA runtime, Bootstrap stack, Swiper carousel, Font Awesome bundle/fonts, generated CSS maps, duplicate images, legacy jQuery/PHP, loader markup, and unused components were removed after migration verification.
 
 ## Migration decision
 
