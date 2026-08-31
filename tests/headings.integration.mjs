@@ -10,8 +10,7 @@ function slugs(file){
 }
 
 const routes=[
-  "/","/about","/work","/lab","/writing","/contact","/privacy","/cookies","/terms","/lab/web-doctor/changelog",
-  ...slugs("data/projects.ts").map(slug=>`/work/${slug}`),
+  "/","/lab","/writing","/privacy","/cookies","/terms","/lab/web-doctor/changelog",
   ...slugs("data/lab-tools.ts").map(slug=>`/lab/${slug}`),
   ...slugs("data/web-guides.ts").map(slug=>`/guides/${slug}`),
   ...slugs("data/writing.ts").map(slug=>`/writing/${slug}`),
@@ -73,7 +72,7 @@ try{
     assert.equal(metaContent(html,"property","og:image:width"),"1200");assert.equal(metaContent(html,"property","og:image:height"),"630");
     process.stdout.write(`✓ ${route} — ${headings.map(item=>`H${item.level} ${item.text}`).join(" | ")}\n`);
   }
-  for(const path of ["/lab/web-doctor","/work","/guides/open-graph"]){const response=await fetch(`${origin}/api/og?path=${encodeURIComponent(path)}`);assert.equal(response.status,200,`${path} sharing image should render`);assert.equal(response.headers.get("content-type"),"image/png");const bytes=(await response.arrayBuffer()).byteLength;assert.ok(bytes>1_000&&bytes<1_000_000,`${path} sharing image should remain lightweight: ${bytes} bytes`);}
+  for(const path of ["/","/lab/web-doctor","/guides/open-graph"]){const response=await fetch(`${origin}/api/og?path=${encodeURIComponent(path)}`);assert.equal(response.status,200,`${path} sharing image should render`);assert.equal(response.headers.get("content-type"),"image/png");const bytes=(await response.arrayBuffer()).byteLength;assert.ok(bytes>1_000&&bytes<1_000_000,`${path} sharing image should remain lightweight: ${bytes} bytes`);}
   assert.equal((await fetch(`${origin}/api/og?path=${encodeURIComponent("/unknown")}`)).status,404,"unknown image paths must not create arbitrary cards");
   process.stdout.write(`\n${uniqueRoutes.length} public routes passed the rendered heading and JSON-LD audit.\n`);
 }finally{

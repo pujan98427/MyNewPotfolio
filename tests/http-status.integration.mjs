@@ -8,7 +8,7 @@ async function request(path){
 
 let checks=0;
 
-for(const path of ["/","/about","/work","/lab/web-doctor","/guides/title-tags"]){
+for(const path of ["/","/lab/web-doctor","/guides/title-tags"]){
   const response=await request(path);
   assert.equal(response.status,200,`${path} should return 200`);
   checks++;
@@ -18,10 +18,11 @@ for(const path of ["/work/tripcart","/work/coachpodium"]){
   assert.equal(response.status,404,`${path} should remain removed employer work`);
 }
 
-for(const [source,destination] of [["/home","/"],["/contact.html","/contact"],["/lab/seo-checker","/lab/web-doctor"]]){
+for(const [source,destination] of [["/home","/"],["/about","/#about"],["/work","/#selected-work"],["/contact","/#contact"],["/contact.html","/#contact"],["/old-portfolio/contact.html","/#contact"],["/lab/seo-checker","/lab/web-doctor"]]){
   const response=await request(source);
   assert.ok(response.status===301||response.status===308,`${source} should return 301/308, received ${response.status}`);
-  assert.equal(new URL(response.headers.get("location"),origin).pathname,destination,`${source} should redirect to ${destination}`);
+  const location=new URL(response.headers.get("location"),origin);
+  assert.equal(`${location.pathname}${location.hash}`,destination,`${source} should redirect to ${destination}`);
   checks++;
 }
 
