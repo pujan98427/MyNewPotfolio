@@ -15,8 +15,8 @@ Quality checks: `npm run typecheck`, `npm run lint`, and `npm run build`.
 
 - `/#about`, `/#skills`, `/#experience`, and `/#education` — homepage profile sections
 - `/#selected-work` — concise employment contributions with direct external links
-- `/lab` — SEO checker, metadata generator, contrast checker, and CSS clamp generator
-- `/writing` and `/writing/[slug]` — article index and individual notes
+- `/lab` — six free web tools, including Web Doctor and the SVG ↔ Base64 Converter
+- `/writing` and `/writing/[slug]` — Notes from the Lab and one implementation note for every Lab tool
 - `/#contact` — homepage contact section with the shared floating message form
 
 Structured content lives in `data/`; shared presentation lives in `components/`.
