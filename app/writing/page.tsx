@@ -1,3 +1,10 @@
-import Link from "next/link"; import { ArrowUpRight } from "lucide-react"; import { PageIntro } from "@/components/ui/page-intro"; import { articles } from "@/data/writing"; import { createPageMetadata } from "@/lib/seo/metadata";
-export const metadata=createPageMetadata({title:"Writing on Frontend Craft",description:"Read original notes by Pujan Chapagain about frontend craft, interaction design, editorial layouts and web performance.",path:"/writing"});
-export default function WritingPage(){ return <main id="main"><PageIntro index="04" eyebrow="Writing" title="Notes from the workbench." description="Short essays about building interfaces with more clarity, character, and care." /><section className="section article-list">{articles.map(article=><article key={article.slug}><time dateTime={article.date}>{new Intl.DateTimeFormat("en-GB",{dateStyle:"long"}).format(new Date(article.date))}</time><div><h2><Link href={`/writing/${article.slug}`}>{article.title}</Link></h2><p>{article.excerpt}</p><span>{article.readingTime}</span></div><Link href={`/writing/${article.slug}`} aria-label={`Read ${article.title}`}><ArrowUpRight aria-hidden="true" /></Link></article>)}</section></main>; }
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
+import { PageIntro } from "@/components/ui/page-intro";
+import { articles } from "@/data/writing";
+import { getLabTool } from "@/data/lab-tools";
+import { createPageMetadata } from "@/lib/seo/metadata";
+
+export const metadata=createPageMetadata({title:"Notes from the Lab",description:"Read practical documentation and implementation notes for Pujan Chapagain’s free browser and website tools.",path:"/writing"});
+
+export default function WritingPage(){return <main id="main"><PageIntro index="08" eyebrow="Lab notes" title="Behind the tools." description="Practical notes about how each Lab tool works, what its output means, and where its limits begin." /><section className="section article-list" aria-label="Lab tool documentation">{articles.map(article=>{const tool=getLabTool(article.toolSlug);return <article key={article.slug}><time dateTime={article.date}>{new Intl.DateTimeFormat("en-GB",{dateStyle:"long"}).format(new Date(article.date))}</time><div><span>{tool?.title}</span><h2><Link href={`/writing/${article.slug}`}>{article.title}</Link></h2><p>{article.excerpt}</p><span>{article.readingTime}</span></div><Link href={`/writing/${article.slug}`} aria-label={`Read ${article.title}`}><ArrowUpRight aria-hidden="true" /></Link></article>;})}</section></main>;}

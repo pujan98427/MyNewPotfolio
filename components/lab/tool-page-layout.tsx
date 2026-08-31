@@ -23,6 +23,7 @@ export function ToolPageLayout({title,description,path,children,variant="editori
     {!immersive&&<header><p className="eyebrow">Frontend lab</p><h1>{title}</h1><p>{description}</p></header>}
     {children}
     {immersive?mode.education:<ToolEducation content={standardEducation!} />}
+    <aside className="tool-note-link"><p className="eyebrow">Notes from the Lab</p><Link href={`/writing/${tool.articleSlug}`}>Read how this tool works <ArrowUpRight aria-hidden="true" /></Link></aside>
     <nav className="tool-switcher" aria-label="Other lab tools">{labTools.filter(item=>item.slug!==tool.slug).map(item=><Link href={`/lab/${item.slug}`} key={item.slug}><span>{item.number}</span>{item.title}<ArrowUpRight aria-hidden="true" /></Link>)}</nav>
     <JsonLd data={schema} />
   </section></main>;
