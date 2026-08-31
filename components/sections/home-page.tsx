@@ -9,6 +9,8 @@ import { HeroStage } from "@/components/interactions/hero-stage";
 import { RevealLine,RevealText,SectionIntro } from "@/components/interactions/reveal";
 import { ProjectStory } from "@/components/work/project-story";
 import { ExperienceList } from "@/components/sections/experience-list";
+import { ContactPanelButton } from "@/components/contact/contact-panel-button";
+import { site } from "@/lib/site";
 
 export function HomePage(){const featuredProjects=projects.slice(0,4),otherContributions=projects.slice(4).filter(project=>project.ownership==="employer"),featuredToolSlugs=new Set(["web-doctor","svg-base64-converter"]),featuredLabTools=labTools.filter(tool=>featuredToolSlugs.has(tool.slug)),otherLabTools=labTools.filter(tool=>!featuredToolSlugs.has(tool.slug));return <main id="main">
   <HeroStage />
@@ -25,5 +27,5 @@ export function HomePage(){const featuredProjects=projects.slice(0,4),otherContr
 
   <section className="about section home-about" id="about" data-section="06"><div className="about-grid"><div className="portrait"><Image src="/pujan-chapagain-portrait.png" alt="Pujan Chapagain wearing a suit and sunglasses" width={660} height={499} sizes="(max-width: 760px) 100vw, 40vw" /></div><div><p className="eyebrow">06 / About</p><h2>Curious by nature.<br /><em>Exacting</em> by craft.</h2><p className="standfirst">I’m Pujan Chapagain, a frontend developer based in Glasgow. I combine user-centred thinking, streamlined workflows and precise implementation to build thoughtful web experiences.</p></div></div></section>
 
-  <section className="home-contact section" id="contact" data-section="07" aria-labelledby="home-contact-heading"><p className="eyebrow">07 / Contact</p><div><h2 id="home-contact-heading">Have something<br />interesting in mind?</h2><p>For a website project, frontend role or thoughtful collaboration, use the Message Pujan control to send a concise note directly to my inbox.</p></div></section>
+  <section className="home-contact section" id="contact" data-section="07" aria-labelledby="home-contact-heading"><p className="eyebrow">07 / Contact</p><div className="home-contact-content"><h2 id="home-contact-heading">Have something<br />interesting in mind?</h2><p>For a website project, frontend role or thoughtful collaboration, send a short note. It goes directly to my inbox, and I reply to the email you provide.</p><ContactPanelButton /><dl className="home-contact-details"><div><dt>Email</dt><dd><a href={`mailto:${site.email}`}>{site.email}</a></dd></div><div><dt>Location</dt><dd>{site.location}</dd></div></dl><nav className="home-contact-socials" aria-label="Professional profiles">{site.socialLinks.map(link=><a href={link.href} target="_blank" rel="me noopener noreferrer" key={link.href} aria-label={`Open Pujan’s ${link.label} profile in a new tab`}>{link.label}<ArrowUpRight aria-hidden="true" /></a>)}</nav></div></section>
 </main>;}

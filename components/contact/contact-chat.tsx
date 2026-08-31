@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { trackProductEvent } from "@/lib/analytics/product-events";
 import type { ContactRequest,ContactResponse,ContactTopic } from "@/lib/contact/types";
 import { useMagneticControl } from "@/components/interactions/use-magnetic-control";
+import { CONTACT_OPEN_EVENT } from "@/lib/contact/open-event";
 
 const TurnstileWidget=dynamic(()=>import("@/components/contact/turnstile-widget").then(module=>module.TurnstileWidget));
 type SubmissionState="idle"|"validating"|"sending"|"success"|"error";
@@ -40,8 +41,9 @@ export function ContactForm({turnstileSiteKey,idPrefix="contact-form",startedAt}
 export function ContactChat({turnstileSiteKey}:{turnstileSiteKey:string|null}){
   const launcherRef=useRef<HTMLButtonElement>(null),dialogRef=useRef<HTMLDialogElement>(null);
   const [mounted,setMounted]=useState(false),[open,setOpen]=useState(false),[startedAt,setStartedAt]=useState(0);
+  const show=useCallback(()=>{trackProductEvent("contact_opened",{});setStartedAt(performance.now());setMounted(true);setOpen(true);},[]);
   useEffect(()=>{if(!mounted||!open||dialogRef.current?.open)return;dialogRef.current?.showModal();requestAnimationFrame(()=>dialogRef.current?.querySelector<HTMLInputElement>("#contact-chat-email")?.focus());},[mounted,open]);
-  function show(){trackProductEvent("contact_opened",{});setStartedAt(performance.now());setMounted(true);setOpen(true);}
+  useEffect(()=>{window.addEventListener(CONTACT_OPEN_EVENT,show);return()=>window.removeEventListener(CONTACT_OPEN_EVENT,show);},[show]);
   function close(){dialogRef.current?.close();}
   function handleClose(){setOpen(false);launcherRef.current?.focus();}
   return <div className="contact-chat" data-open={open||undefined}><button ref={launcherRef} type="button" className="contact-chat-trigger" aria-label="Message Pujan" aria-haspopup="dialog" aria-expanded={open} onClick={show}><Mail aria-hidden="true" /><span>Message Pujan</span></button>{mounted&&<dialog ref={dialogRef} className="contact-chat-dialog" aria-labelledby="contact-chat-title" onClose={handleClose}><header><div><p>Email Pujan directly</p><h2 id="contact-chat-title">Send a message.</h2></div><button className="button button-icon" type="button" aria-label="Close message form" onClick={close}><X aria-hidden="true" /></button></header><div className="contact-chat-intro"><p>Your note goes to Pujan’s inbox for project enquiries, opportunities and thoughtful collaborations. Replies go to the email you provide.</p></div><ContactForm turnstileSiteKey={turnstileSiteKey} idPrefix="contact-chat" startedAt={startedAt} /></dialog>}</div>;
