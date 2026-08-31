@@ -3,7 +3,7 @@
 import { useEffect,useRef } from "react";
 import { X } from "lucide-react";
 import { ContactForm } from "@/components/contact/contact-form";
-import styles from "./contact-chat.module.css";
+import styles from "./contact-panel.module.css";
 
 export function ContactPanel({turnstileSiteKey,startedAt,onClosed}:{turnstileSiteKey:string|null;startedAt:number;onClosed:()=>void}){
   const dialogRef=useRef<HTMLDialogElement>(null);

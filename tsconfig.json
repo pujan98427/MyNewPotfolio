@@ -38,8 +38,6 @@
   "exclude": [
     "node_modules",
     "node_modules-cra",
-    "node_modules-partial",
-    "src",
-    "old-portfolio"
+    "node_modules-partial"
   ]
 }

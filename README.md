@@ -21,7 +21,7 @@ Quality checks: `npm run typecheck`, `npm run lint`, and `npm run build`.
 
 Structured content lives in `data/`; shared presentation lives in `components/`.
 
-The previous CRA source remains in `src/` and the older static portfolio remains in `old-portfolio/` until the migration is accepted.
+This repository contains only the production Next.js application and uses npm with `package-lock.json` as its package-manager lockfile. Historical URLs remain covered by permanent redirects even though the retired CRA and static/PHP source trees have been removed.
 
 ## Search Console deployment checklist
 

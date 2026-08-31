@@ -2,7 +2,7 @@
 
 ## What was found
 
-- **Architecture:** Create React App with a single large `Home.js`, React Router routes that point to hashes, and Bootstrap-based layout. A separate static/PHP portfolio also lives in `old-portfolio/`.
+- **Architecture found during migration:** Create React App with a single large `Home.js`, React Router routes that pointed to hashes, and a Bootstrap-based layout. A separate static/PHP portfolio was also audited.
 - **Dependencies:** React 18.1, CRA 5, Bootstrap, React Bootstrap, React Router, Swiper 8, EmailJS, React Scroll, Font Awesome, and multiple unused testing/runtime packages. The application relies on old generated CSS and bundled third-party JavaScript.
 - **Reusable content:** Biography, Kathmandu location, résumé link, education, employment, skills, seven project links, phone/email, and three social profiles.
 - **Assets:** Seven good 1180–1200px project screenshots, a portrait, logo/favicons, skill logos, and duplicate legacy imagery. The project screenshots are suitable for migration with `next/image`.
@@ -17,7 +17,7 @@
 
 Rewrite the presentation and runtime while preserving the factual content and original project imagery. The new `app/` uses the Next.js App Router, typed content data, server-rendered sections, `next/image`, metadata routes, local security headers, semantic landmarks, visible focus states, and a reduced-motion mode. CSS handles the small amount of motion, so no animation runtime is shipped. Direct email and phone links replace the insecure EmailJS form until a private server-side mail provider is configured.
 
-The previous `src/` and `old-portfolio/` implementations remain available and have not been deleted.
+The previous CRA and static/PHP implementations were removed after the Next.js build, migrated assets and permanent legacy redirects were verified. This file remains as a record of the migration audit, not as documentation of current source directories.
 
 ## Phase 2 architecture
 

@@ -6,7 +6,7 @@ import { Send } from "lucide-react";
 import { trackProductEvent } from "@/lib/analytics/product-events";
 import type { ContactRequest,ContactResponse,ContactTopic } from "@/lib/contact/types";
 import { useMagneticControl } from "@/components/interactions/use-magnetic-control";
-import styles from "./contact-chat.module.css";
+import styles from "./contact-panel.module.css";
 
 const TurnstileWidget=dynamic(()=>import("@/components/contact/turnstile-widget").then(module=>module.TurnstileWidget));
 type SubmissionState="idle"|"validating"|"sending"|"success"|"error";

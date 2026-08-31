@@ -124,22 +124,22 @@ The earlier Open Graph statuses in the baseline table record the state found dur
 
 ### A6 legacy URL preservation
 
-Legacy sources inspected: current `src/` CRA routing and navigation, `public/index.html`, retained `old-portfolio/` HTML/PHP files, migration notes and Git path history (including the historical `external/` copy).
+Legacy sources inspected before repository cleanup: the retired CRA routing and navigation, old static HTML/PHP files, migration notes and Git path history (including the historical `external/` copy). The source copies were removed after this redirect map was verified.
 
 | Old URL | Permanent destination | Evidence / equivalence |
 |---|---|---|
 | `/home` | `/` | Explicit CRA home route |
 | `/index.html` | `/` | Static portfolio home document |
 | `/index.php` | `/` | PHP portfolio home document |
-| `/contact.html` | `/contact` | Static contact page |
+| `/contact.html` | `/#contact` | Static contact page now represented by the homepage contact section |
 | `/external` | `/` | Historical copy of portfolio home |
 | `/external/index.html` | `/` | Historical static home document |
 | `/external/index.php` | `/` | Historical PHP home document |
-| `/external/contact.html` | `/contact` | Historical contact page |
-| `/old-portfolio` | `/` | Retained copy of portfolio home |
-| `/old-portfolio/index.html` | `/` | Retained static home document |
-| `/old-portfolio/index.php` | `/` | Retained PHP home document |
-| `/old-portfolio/contact.html` | `/contact` | Retained contact page |
+| `/external/contact.html` | `/#contact` | Historical contact page now represented by the homepage contact section |
+| `/old-portfolio` | `/` | Former copy of portfolio home |
+| `/old-portfolio/index.html` | `/` | Former static home document |
+| `/old-portfolio/index.php` | `/` | Former PHP home document |
+| `/old-portfolio/contact.html` | `/#contact` | Former contact page now represented by the homepage contact section |
 
 Intentionally not redirected:
 
