@@ -2,15 +2,19 @@
 
 import {useEffect,useRef,useState} from "react";
 import Image from "next/image";
+import {useRouter} from "next/navigation";
 import styles from "./simple-tools.module.css";
+import {saveImageHandoff,takeImageHandoff} from "@/lib/lab/image-handoff";
 
 export type ImageMode="compress"|"resize"|"convert"|"crop";
 type Result={url:string;blob:Blob;width:number;height:number};
 const labels:Record<ImageMode,string>={compress:"Compress image",resize:"Resize image",convert:"Convert image",crop:"Crop image"};
+const routes:Record<ImageMode,string>={compress:"/lab/image-compressor",resize:"/lab/image-resizer",convert:"/lab/image-format-converter",crop:"/lab/image-cropper"};
 const extensions:Record<string,string>={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"};
 const prettyBytes=(bytes:number)=>bytes<1024?`${bytes} B`:bytes<1048576?`${(bytes/1024).toFixed(1)} KB`:`${(bytes/1048576).toFixed(1)} MB`;
 
 export function ImageTool({mode}:{mode:ImageMode}){
+  const router=useRouter();
   const [file,setFile]=useState<File|null>(null);
   const [source,setSource]=useState<string|null>(null);
   const [result,setResult]=useState<Result|null>(null);
@@ -22,10 +26,12 @@ export function ImageTool({mode}:{mode:ImageMode}){
   const [ratio,setRatio]=useState("1:1");
   const [position,setPosition]=useState(50);
   const [busy,setBusy]=useState(false);
+  const [handoffBusy,setHandoffBusy]=useState<ImageMode|null>(null);
   const imageRef=useRef<HTMLImageElement|null>(null);
 
   useEffect(()=>()=>{if(source)URL.revokeObjectURL(source)},[source]);
   useEffect(()=>()=>{if(result)URL.revokeObjectURL(result.url)},[result]);
+  useEffect(()=>{let active=true;void takeImageHandoff().then(next=>{if(!active||!next)return;setFile(next);setSource(URL.createObjectURL(next));setResult(null);setError("")}).catch(()=>{});return()=>{active=false}},[]);
   const choose=(next?:File)=>{
     if(!next)return;
     if(!next.type.startsWith("image/")||next.type==="image/svg+xml"){setError("Choose a PNG, JPEG, WebP, GIF, BMP or AVIF image.");return}
@@ -61,7 +67,9 @@ export function ImageTool({mode}:{mode:ImageMode}){
     }catch(caught){setError(caught instanceof Error?caught.message:"The image could not be processed.")}finally{setBusy(false)}
   };
   const clear=()=>{if(source)URL.revokeObjectURL(source);if(result)URL.revokeObjectURL(result.url);setFile(null);setSource(null);setResult(null);setError("")};
-  const download=()=>{if(!result||!file)return;const anchor=document.createElement("a");anchor.href=result.url;anchor.download=`${file.name.replace(/\.[^.]+$/,"")}-${mode}.${extensions[result.blob.type]??"png"}`;anchor.click()};
+  const outputName=result&&file?`${file.name.replace(/\.[^.]+$/,"")}-${mode}.${extensions[result.blob.type]??"png"}`:"";
+  const download=()=>{if(!result||!file)return;const anchor=document.createElement("a");anchor.href=result.url;anchor.download=outputName;anchor.click()};
+  const continueWith=async(nextMode:ImageMode)=>{if(!result)return;setHandoffBusy(nextMode);setError("");try{await saveImageHandoff(result.blob,outputName);router.push(routes[nextMode])}catch{setError("This browser could not pass the image to the next tool. Download it instead.");setHandoffBusy(null)}};
 
   return <div className={styles.workspace}>
     <p className={styles.privacy}>Your image is processed locally in this browser and is not uploaded.</p>
@@ -74,7 +82,7 @@ export function ImageTool({mode}:{mode:ImageMode}){
           {mode!=="resize"&&<details className={styles.advanced}><summary>More options</summary><div><div className={styles.field}><label htmlFor="image-format">Output format</label><select id="image-format" value={format} onChange={event=>setFormat(event.target.value)}><option value="image/webp">WebP</option><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option></select></div>{format!=="image/png"&&<div className={styles.field}><label htmlFor="image-quality">Quality · {quality}%</label><input id="image-quality" type="range" min="30" max="100" value={quality} onChange={event=>setQuality(Number(event.target.value))}/></div>}</div></details>}
           <div className={styles.actions}><button type="button" className={styles.button} onClick={process} disabled={busy}>{busy?"Working…":labels[mode]}</button><button type="button" className={styles.button} data-quiet onClick={clear}>Clear</button></div></>}
       </section>
-      <section className={styles.panel}><h2>Result</h2>{result?<><div className={styles.preview}><Image unoptimized src={result.url} alt="Processed image preview" width={result.width} height={result.height}/></div><dl className={styles.stats}><div><dt>Before</dt><dd>{file&&prettyBytes(file.size)}</dd></div><div><dt>After</dt><dd>{prettyBytes(result.blob.size)}</dd></div><div><dt>Dimensions</dt><dd>{result.width} × {result.height}</dd></div><div><dt>Change</dt><dd>{file?`${Math.round((result.blob.size/file.size-1)*100)}%`:"—"}</dd></div></dl><div className={styles.actions}><button type="button" className={styles.button} onClick={download}>Download image</button></div></>:<p>Your processed image and its real file size will appear here.</p>}<p className={styles.status} data-error={Boolean(error)} role="status">{error}</p></section>
+      <section className={styles.panel}><h2>Result</h2>{result&&file?<><div className={styles.resultHero} role="status"><span className={styles.resultLabel}>Done</span><strong className={styles.resultName}>{outputName}</strong><span className={styles.resultMetric}>{prettyBytes(result.blob.size)}</span><p>{result.blob.size<file.size?`${Math.round((1-result.blob.size/file.size)*100)}% smaller than the original.`:result.blob.size===file.size?"The file size is unchanged.":`${Math.round((result.blob.size/file.size-1)*100)}% larger than the original.`}</p></div><div className={styles.preview}><Image unoptimized src={result.url} alt="Processed image preview" width={result.width} height={result.height}/></div><dl className={styles.stats}><div><dt>Original</dt><dd>{prettyBytes(file.size)}</dd></div><div><dt>New size</dt><dd>{prettyBytes(result.blob.size)}</dd></div><div><dt>Dimensions</dt><dd>{result.width} × {result.height}</dd></div><div><dt>File type</dt><dd>{(extensions[result.blob.type]??"image").toUpperCase()}</dd></div></dl><div className={styles.actions}><button type="button" className={styles.button} onClick={download}>Download {outputName}</button></div><nav className={styles.resultLinks} aria-label="Use this image in another tool"><span>Use this result without uploading again</span>{(["compress","resize","crop","convert"] as const).filter(next=>next!==mode).map(next=><button type="button" key={next} disabled={handoffBusy!==null} onClick={()=>void continueWith(next)}>{handoffBusy===next?"Opening…":`${next[0].toUpperCase()}${next.slice(1)} this image`}</button>)}</nav></>:<p>Your processed image and its real file size will appear here.</p>}<p className={styles.status} data-error={Boolean(error)} role="status">{error}</p></section>
     </div>
   </div>;
 }
