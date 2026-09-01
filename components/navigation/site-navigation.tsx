@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AnimatedLogo } from "./animated-logo";
 import { PrimaryNavigation } from "./primary-navigation";
+import { labTools } from "@/data/lab-tools";
 
 const primaryLinks=[
   {href:"/#selected-work",label:"Work",sectionId:"selected-work"},
@@ -10,7 +11,7 @@ const primaryLinks=[
   {href:"/#contact",label:"Contact",sectionId:"contact"},
 ];
 const portfolioCommandLinks=[{href:"/",label:"Home"},{href:"/#selected-work",label:"Selected work"},{href:"/#skills",label:"Skills"},{href:"/#experience",label:"Experience"},{href:"/#education",label:"Education"},{href:"/#about",label:"About Pujan"},{href:"/#contact",label:"Contact"}];
-const commandLinks=[...portfolioCommandLinks.map(link=>({...link,group:"Homepage"})),{href:"/#lab",label:"Lab overview",group:"Free tools"},{href:"/lab/web-doctor",label:"Web Doctor",group:"Free tools"},{href:"/lab/svg-base64-converter",label:"SVG Base64 Converter",group:"Free tools"},{href:"/lab/meta-generator",label:"Meta Tag Generator",group:"Free tools"},{href:"/lab/contrast-checker",label:"Contrast Checker",group:"Free tools"},{href:"/lab/clamp-generator",label:"CSS Clamp Generator",group:"Free tools"},{href:"/lab/open-graph-preview",label:"Open Graph Preview",group:"Free tools"}];
+const commandLinks=[...portfolioCommandLinks.map(link=>({...link,group:"Homepage"})),{href:"/#lab",label:"Lab overview",group:"Free tools"},...labTools.map(tool=>({href:`/lab/${tool.slug}`,label:tool.title,group:tool.category}))];
 
 const navigationScript=`(()=>{const header=document.querySelector('[data-site-header]');const dialog=document.querySelector('[data-command-dialog]');const trigger=document.querySelector('[data-command-trigger]');const close=document.querySelector('[data-command-close]');const input=document.querySelector('[data-command-input]');const empty=document.querySelector('[data-command-empty]');if(!(header instanceof HTMLElement)||!(dialog instanceof HTMLDialogElement)||!(trigger instanceof HTMLButtonElement)||!(close instanceof HTMLButtonElement)||!(input instanceof HTMLInputElement))return;let frame=0;const compact=()=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;header.toggleAttribute('data-compact',scrollY>48)})};const open=()=>{if(dialog.open)return;input.value='';dialog.querySelectorAll('[data-command-link]').forEach(link=>link.removeAttribute('hidden'));empty?.setAttribute('hidden','');dialog.showModal();requestAnimationFrame(()=>input.focus())};const shut=()=>{dialog.close();trigger.focus()};addEventListener('scroll',compact,{passive:true});addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();open()}});trigger.addEventListener('click',open);close.addEventListener('click',shut);dialog.addEventListener('click',event=>{if(event.target===dialog)shut()});input.addEventListener('input',()=>{const query=input.value.trim().toLowerCase();let visible=0;dialog.querySelectorAll('[data-command-link]').forEach(link=>{const match=(link.textContent||'').toLowerCase().includes(query);link.toggleAttribute('hidden',!match);if(match)visible++});empty?.toggleAttribute('hidden',visible>0)});compact()})();`;
 
