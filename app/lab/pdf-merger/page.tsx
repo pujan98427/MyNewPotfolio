@@ -1,0 +1,3 @@
+import {PdfTool} from "@/components/lab/pdf-tool";import {ToolPageLayout} from "@/components/lab/tool-page-layout";import {createToolPageMetadata} from "@/lib/seo/metadata";
+export const metadata=createToolPageMetadata({title:"Free PDF Merger",description:"Arrange and merge several PDF files into one download. Files are processed locally in your browser.",path:"/lab/pdf-merger"});
+export default function Page(){return <ToolPageLayout title="PDF Merger" description="Add PDFs, put them in the right order and download one combined document." path="/lab/pdf-merger"><PdfTool mode="merge"/></ToolPageLayout>}

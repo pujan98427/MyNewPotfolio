@@ -1,0 +1,3 @@
+import {RandomPickerTool} from "@/components/lab/random-picker-tool";import {ToolPageLayout} from "@/components/lab/tool-page-layout";import {createToolPageMetadata} from "@/lib/seo/metadata";
+export const metadata=createToolPageMetadata({title:"Free Random Picker",description:"Paste names or choices and select one using your browser's secure random source. No account or upload.",path:"/lab/random-picker"});
+export default function Page(){return <ToolPageLayout title="Random Picker" description="Paste your choices and select one without a wheel, account or setup." path="/lab/random-picker"><RandomPickerTool/></ToolPageLayout>}

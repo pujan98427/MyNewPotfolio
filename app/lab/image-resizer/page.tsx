@@ -1,0 +1,3 @@
+import {ImageTool} from "@/components/lab/image-tool";import {ToolPageLayout} from "@/components/lab/tool-page-layout";import {createToolPageMetadata} from "@/lib/seo/metadata";
+export const metadata=createToolPageMetadata({title:"Free Image Resizer",description:"Resize an image to exact pixel dimensions while keeping its proportions. Processing stays in your browser.",path:"/lab/image-resizer"});
+export default function Page(){return <ToolPageLayout title="Image Resizer" description="Choose a width or height. The matching dimension updates automatically." path="/lab/image-resizer"><ImageTool mode="resize"/></ToolPageLayout>}

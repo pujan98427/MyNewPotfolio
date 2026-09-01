@@ -1,0 +1,3 @@
+import {ImageTool} from "@/components/lab/image-tool";import {ToolPageLayout} from "@/components/lab/tool-page-layout";import {createToolPageMetadata} from "@/lib/seo/metadata";
+export const metadata=createToolPageMetadata({title:"Free Image Cropper",description:"Crop an image to square, landscape, wide or portrait dimensions and download it without uploading the source.",path:"/lab/image-cropper"});
+export default function Page(){return <ToolPageLayout title="Image Cropper" description="Choose a crop shape and adjust which part of the image stays in frame." path="/lab/image-cropper"><ImageTool mode="crop"/></ToolPageLayout>}

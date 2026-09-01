@@ -1,0 +1,3 @@
+import {PdfTool} from "@/components/lab/pdf-tool";import {ToolPageLayout} from "@/components/lab/tool-page-layout";import {createToolPageMetadata} from "@/lib/seo/metadata";
+export const metadata=createToolPageMetadata({title:"Free PDF Compressor",description:"Optimize a PDF's document structure locally and download the result only when it is smaller.",path:"/lab/pdf-compressor"});
+export default function Page(){return <ToolPageLayout title="PDF Compressor" description="Re-save a PDF with compact document objects and keep the smaller file." path="/lab/pdf-compressor"><PdfTool mode="compress"/></ToolPageLayout>}

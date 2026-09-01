@@ -1,0 +1,3 @@
+import {ImageTool} from "@/components/lab/image-tool";import {ToolPageLayout} from "@/components/lab/tool-page-layout";import {createToolPageMetadata} from "@/lib/seo/metadata";
+export const metadata=createToolPageMetadata({title:"Image Format Converter — PNG, JPEG & WebP",description:"Convert browser-readable images to WebP, JPEG or PNG locally, with a preview and real output size.",path:"/lab/image-format-converter"});
+export default function Page(){return <ToolPageLayout title="Image Format Converter" description="Choose an image and download a WebP, JPEG or PNG copy." path="/lab/image-format-converter"><ImageTool mode="convert"/></ToolPageLayout>}
