@@ -49,6 +49,8 @@ for(const preset of ["Smaller file","Balanced","Keep quality"])assert.match(read
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/Recommended/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/Download compressed image/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/savedPercent/);
+assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/Keep proportions/);
+assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/Current size/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/Before and after/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/Original image before compression/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/No smaller version was created/);
