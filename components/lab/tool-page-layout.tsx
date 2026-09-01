@@ -4,6 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ToolEducation } from "@/components/lab/tool-education";
+import { ToolAdvertisementSlot } from "@/components/lab/tool-advertisement";
 import { labTools } from "@/data/lab-tools";
 import { getToolEducation } from "@/data/tool-education";
 import { webApplicationStructuredData } from "@/lib/seo/structured-data";
@@ -33,8 +34,10 @@ export function ToolPageLayout({title,description,path,children,variant="editori
         <Link href="/lab">Find another tool <ArrowUpRight aria-hidden="true" /></Link>
       </div>
     </section>}
-    {!immersive&&advertisement}
-    {immersive?mode.education:standardEducation?<ToolEducation content={standardEducation} />:<section className="tool-education"><header><p className="eyebrow">About this tool</p><h2>A direct route from input to result.</h2></header><div><h3>How it works</h3><p>{description} The interactive work happens locally in your browser, so your selected files or entered choices are not uploaded to this site.</p><h3>Before you download</h3><p>Review the preview, dimensions or file-size information shown by the tool. Keep the original file until you have checked that the downloaded result suits its intended use.</p><h3>Privacy</h3><p>This tool has no account and does not store your input. Closing or refreshing the page clears the current workspace.</p></div></section>}
+    {!immersive&&tool.advertisingEligible&&<ToolAdvertisementSlot placement="after-tool-result" publisherContentId={`${tool.slug}-workspace`} />}
+    {!immersive&&!tool.advertisingEligible&&advertisement}
+    <div id={`${tool.slug}-documentation`}>{immersive?mode.education:standardEducation?<ToolEducation content={standardEducation} />:<section className="tool-education"><header><p className="eyebrow">About this tool</p><h2>A direct route from input to result.</h2></header><div><h3>How it works</h3><p>{description} The interactive work happens locally in your browser, so your selected files or entered choices are not uploaded to this site.</p><h3>Before you download</h3><p>Review the preview, dimensions or file-size information shown by the tool. Keep the original file until you have checked that the downloaded result suits its intended use.</p><h3>Privacy</h3><p>This tool has no account and does not store your input. Closing or refreshing the page clears the current workspace.</p></div></section>}</div>
+    {tool.advertisingEligible&&<ToolAdvertisementSlot placement="after-tool-documentation" publisherContentId={`${tool.slug}-documentation`} />}
     <section className="tool-related" aria-labelledby={`${tool.slug}-related`}><p className="eyebrow">Related tools</p><h2 id={`${tool.slug}-related`}>Other ways to continue.</h2><nav className="tool-switcher" aria-label="Related lab tools">{relatedTools.map(item=><Link href={`/lab/${item.slug}`} key={item.slug}><span>{item.number}</span>{item.title}<ArrowUpRight aria-hidden="true" /></Link>)}</nav></section>
     <JsonLd data={schema} />
   </section></main>;

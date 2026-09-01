@@ -15,7 +15,13 @@ type EducationalAdvertisement = {
   publisherContentId:string;
 };
 
-export type AdvertisementProps = (ReportAdvertisement|EducationalAdvertisement)&{children:ReactNode};
+type ToolAdvertisement = {
+  placement:"after-tool-result"|"after-tool-documentation";
+  context:"tool-page";
+  publisherContentId:string;
+};
+
+export type AdvertisementProps = (ReportAdvertisement|EducationalAdvertisement|ToolAdvertisement)&{children:ReactNode};
 
 /**
  * The only approved wrapper for future advertising placements.
