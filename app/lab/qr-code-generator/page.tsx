@@ -1,3 +1,3 @@
 import {QrCodeTool} from "@/components/lab/qr-code-tool";import {ToolPageLayout} from "@/components/lab/tool-page-layout";import {createToolPageMetadata} from "@/lib/seo/metadata";
 export const metadata=createToolPageMetadata({title:"Free QR Code Generator",description:"Create a QR code from text or a URL and download it as PNG or SVG. Generated locally in your browser.",path:"/lab/qr-code-generator"});
-export default function Page(){return <ToolPageLayout title="QR Code Generator" description="Enter text or a link, create the code, then download the format you need." path="/lab/qr-code-generator"><QrCodeTool/></ToolPageLayout>}
+export default function Page(){return <ToolPageLayout title="QR Code Generator" description="Create a QR code for a link, Wi-Fi network, contact detail or message and download it immediately." path="/lab/qr-code-generator"><QrCodeTool/></ToolPageLayout>}

@@ -17,7 +17,13 @@ for(const [query,slug] of [["make photo smaller","image-compressor"],["resize pi
 const localSources=["components/lab/image-tool.tsx","components/lab/pdf-tool.tsx","components/lab/qr-code-tool.tsx","components/lab/random-picker-tool.tsx"].map(path=>readFileSync(path,"utf8")).join("\n");
 assert.doesNotMatch(localSources,/fetch\(|XMLHttpRequest|axios|\/api\//);
 assert.match(readFileSync("components/lab/pdf-tool.tsx","utf8"),/useObjectStreams:true/);
+assert.match(readFileSync("components/lab/pdf-tool.tsx","utf8"),/savePdfHandoff/);
+const pdfHandoff=readFileSync("lib/lab/pdf-handoff.ts","utf8");
+assert.match(pdfHandoff,/indexedDB\.open/);
+assert.match(pdfHandoff,/store\.delete\(RECORD_KEY\)/);
+assert.doesNotMatch(pdfHandoff,/fetch\(|XMLHttpRequest|localStorage/);
 assert.match(readFileSync("components/lab/qr-code-tool.tsx","utf8"),/await import\("qrcode"\)/);
+for(const qrType of ["link","wifi","contact","message"])assert.match(readFileSync("components/lab/qr-code-tool.tsx","utf8"),new RegExp(`value=\\"${qrType}\\"`));
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/canvas\.toBlob/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/saveImageHandoff/);
 const imageHandoff=readFileSync("lib/lab/image-handoff.ts","utf8");
