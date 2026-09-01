@@ -15,7 +15,7 @@ Quality checks: `npm run typecheck`, `npm run lint`, and `npm run build`.
 
 - `/#about`, `/#skills`, `/#experience`, and `/#education` — homepage profile sections
 - `/#selected-work` — concise employment contributions with direct external links
-- `/lab` — six free web tools, including Web Doctor and the SVG ↔ Base64 Converter
+- `/lab` — fourteen free tools grouped across website, image, document, developer/design and everyday tasks
 - `/writing` and `/writing/[slug]` — Notes from the Lab and one implementation note for every Lab tool
 - `/#contact` — homepage contact section with the shared floating message form
 

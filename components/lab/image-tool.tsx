@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect,useRef,useState} from "react";
+import Image from "next/image";
 import styles from "./simple-tools.module.css";
 
 export type ImageMode="compress"|"resize"|"convert"|"crop";
@@ -23,7 +24,8 @@ export function ImageTool({mode}:{mode:ImageMode}){
   const [busy,setBusy]=useState(false);
   const imageRef=useRef<HTMLImageElement|null>(null);
 
-  useEffect(()=>()=>{if(source)URL.revokeObjectURL(source);if(result)URL.revokeObjectURL(result.url)},[source,result]);
+  useEffect(()=>()=>{if(source)URL.revokeObjectURL(source)},[source]);
+  useEffect(()=>()=>{if(result)URL.revokeObjectURL(result.url)},[result]);
   const choose=(next?:File)=>{
     if(!next)return;
     if(!next.type.startsWith("image/")||next.type==="image/svg+xml"){setError("Choose a PNG, JPEG, WebP, GIF, BMP or AVIF image.");return}
@@ -66,13 +68,13 @@ export function ImageTool({mode}:{mode:ImageMode}){
     <div className={styles.grid}>
       <section className={styles.panel}><h2>Choose an image</h2>
         <label className={styles.drop} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();choose(event.dataTransfer.files[0])}}><input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" onChange={event=>choose(event.target.files?.[0])}/><span><strong>Drop an image here</strong>or choose a file</span></label>
-        {source&&<><div className={styles.preview}><img src={source} alt="Selected image preview" onLoad={onLoad}/></div><p>{file?.name} · {file&&prettyBytes(file.size)}</p>
+        {source&&<><div className={styles.preview}><Image unoptimized src={source} alt="Selected image preview" width={width||1} height={height||1} onLoad={onLoad}/></div><p>{file?.name} · {file&&prettyBytes(file.size)}</p>
           {mode==="resize"&&<div className={styles.row}><div className={styles.field}><label htmlFor="image-width">Width (px)</label><input id="image-width" type="number" min="1" max="12000" value={width} onChange={event=>{const next=Number(event.target.value);setWidth(next);if(imageRef.current)setHeight(Math.round(next*imageRef.current.naturalHeight/imageRef.current.naturalWidth))}}/></div><div className={styles.field}><label htmlFor="image-height">Height (px)</label><input id="image-height" type="number" min="1" max="12000" value={height} onChange={event=>{const next=Number(event.target.value);setHeight(next);if(imageRef.current)setWidth(Math.round(next*imageRef.current.naturalWidth/imageRef.current.naturalHeight))}}/></div></div>}
           {mode==="crop"&&<><div className={styles.field}><label htmlFor="crop-ratio">Crop shape</label><select id="crop-ratio" value={ratio} onChange={event=>setRatio(event.target.value)}><option value="1:1">Square · 1:1</option><option value="4:3">Landscape · 4:3</option><option value="16:9">Wide · 16:9</option><option value="3:4">Portrait · 3:4</option></select></div><div className={styles.field}><label htmlFor="crop-position">Crop position</label><input id="crop-position" type="range" min="0" max="100" value={position} onChange={event=>setPosition(Number(event.target.value))}/></div></>}
           {mode!=="resize"&&<details className={styles.advanced}><summary>More options</summary><div><div className={styles.field}><label htmlFor="image-format">Output format</label><select id="image-format" value={format} onChange={event=>setFormat(event.target.value)}><option value="image/webp">WebP</option><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option></select></div>{format!=="image/png"&&<div className={styles.field}><label htmlFor="image-quality">Quality · {quality}%</label><input id="image-quality" type="range" min="30" max="100" value={quality} onChange={event=>setQuality(Number(event.target.value))}/></div>}</div></details>}
           <div className={styles.actions}><button type="button" className={styles.button} onClick={process} disabled={busy}>{busy?"Working…":labels[mode]}</button><button type="button" className={styles.button} data-quiet onClick={clear}>Clear</button></div></>}
       </section>
-      <section className={styles.panel}><h2>Result</h2>{result?<><div className={styles.preview}><img src={result.url} alt="Processed image preview"/></div><dl className={styles.stats}><div><dt>Before</dt><dd>{file&&prettyBytes(file.size)}</dd></div><div><dt>After</dt><dd>{prettyBytes(result.blob.size)}</dd></div><div><dt>Dimensions</dt><dd>{result.width} × {result.height}</dd></div><div><dt>Change</dt><dd>{file?`${Math.round((result.blob.size/file.size-1)*100)}%`:"—"}</dd></div></dl><div className={styles.actions}><button type="button" className={styles.button} onClick={download}>Download image</button></div></>:<p>Your processed image and its real file size will appear here.</p>}<p className={styles.status} data-error={Boolean(error)} role="status">{error}</p></section>
+      <section className={styles.panel}><h2>Result</h2>{result?<><div className={styles.preview}><Image unoptimized src={result.url} alt="Processed image preview" width={result.width} height={result.height}/></div><dl className={styles.stats}><div><dt>Before</dt><dd>{file&&prettyBytes(file.size)}</dd></div><div><dt>After</dt><dd>{prettyBytes(result.blob.size)}</dd></div><div><dt>Dimensions</dt><dd>{result.width} × {result.height}</dd></div><div><dt>Change</dt><dd>{file?`${Math.round((result.blob.size/file.size-1)*100)}%`:"—"}</dd></div></dl><div className={styles.actions}><button type="button" className={styles.button} onClick={download}>Download image</button></div></>:<p>Your processed image and its real file size will appear here.</p>}<p className={styles.status} data-error={Boolean(error)} role="status">{error}</p></section>
     </div>
   </div>;
 }

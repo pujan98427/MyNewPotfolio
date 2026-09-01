@@ -14,7 +14,7 @@ export function LabDirectory({tools}:{tools:readonly LabTool[]}){
     const terms=normalized.split(" ").filter(Boolean);
     return tools.filter(tool=>{
       if(!terms.length)return true;
-      const haystack=normalize([tool.title,tool.description,tool.category,...tool.keywords].join(" "));
+      const haystack=normalize([tool.title,tool.description,tool.category,...tool.searchTerms].join(" "));
       return terms.every(term=>haystack.includes(term));
     });
   },[normalized,tools]);

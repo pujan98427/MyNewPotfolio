@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint app components data lib types next.config.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node tests/web-doctor.unit.mjs && node tests/contact-validation.test.mjs && node tests/contact-api.mock.mjs && node tests/contact-resend.mock.mjs",
+    "test": "node tests/web-doctor.unit.mjs && node tests/lab-tools.test.mjs && node tests/contact-validation.test.mjs && node tests/contact-api.mock.mjs && node tests/contact-resend.mock.mjs",
     "test:headings": "node tests/headings.integration.mjs",
     "test:integration": "node --test --test-concurrency=1 tests/web-doctor.test.mjs",
     "test:status": "node tests/http-status.integration.mjs",
