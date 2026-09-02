@@ -6,6 +6,15 @@ function load(path){const source=readFileSync(path,"utf8"),compiled=ts.transpile
 const {labTools,labCategoryOrder}=load("data/lab-tools.ts");
 const expected=["qr-code-generator","image-compressor","image-resizer","image-format-converter","image-cropper","pdf-merger","pdf-compressor","random-picker"];
 for(const slug of expected)assert.ok(labTools.some(tool=>tool.slug===slug),slug);
+const newToolPages=expected.map(slug=>({slug,source:readFileSync(`app/lab/${slug}/page.tsx`,"utf8")}));
+const seoRecords=newToolPages.map(({slug,source})=>{const match=source.match(/createToolPageMetadata\(\{title:"([^"]+)",description:"([^"]+)",path:"([^"]+)"\}\)/);assert.ok(match,`${slug} needs explicit tool metadata`);assert.equal(match[3],`/lab/${slug}`,`${slug} needs a self canonical path`);assert.ok(match[1].length>=15,`${slug} needs a meaningful title`);assert.ok(match[2].length>=60,`${slug} needs a meaningful description`);assert.match(source,/ToolPageLayout title="[^"]+" description="[^"]+" path="\/lab\//);return {title:match[1],description:match[2],path:match[3]}});
+assert.equal(new Set(seoRecords.map(record=>record.title)).size,expected.length,"new tool titles must be unique");
+assert.equal(new Set(seoRecords.map(record=>record.description)).size,expected.length,"new tool descriptions must be unique");
+assert.equal(new Set(seoRecords.map(record=>record.path)).size,expected.length,"new tool canonicals must be unique");
+const toolLayoutSource=readFileSync("components/lab/tool-page-layout.tsx","utf8");
+for(const contract of ["<h1>{title}</h1>","webApplicationStructuredData","<JsonLd data={schema}","getToolEducation","href=\"/lab\""])assert.ok(toolLayoutSource.includes(contract),contract);
+const sitemapSource=readFileSync("app/sitemap.ts","utf8");assert.match(sitemapSource,/\.\.\.labTools\.map\(tool=>entry\(`\/lab\/\$\{tool\.slug\}`/);
+const labDirectorySource=readFileSync("components/lab/lab-directory.tsx","utf8");assert.match(labDirectorySource,/tools\.map|categoryTools\.map/);
 assert.deepEqual(labCategoryOrder,["Website & SEO","Images","Documents","Developer & Design","Everyday"]);
 assert.equal(new Set(labTools.map(tool=>tool.slug)).size,labTools.length);
 assert.ok(labTools.every(tool=>tool.documentationSlug&&tool.searchTerms.length>=4));
