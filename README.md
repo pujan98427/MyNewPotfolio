@@ -2,6 +2,8 @@
 
 An editorial portfolio rebuilt with Next.js App Router, TypeScript, and Tailwind CSS.
 
+> PDF compression note: meaningful image-heavy compression needs a separately reviewed Ghostscript/WebAssembly integration. The current local tool performs structural compaction and does not pretend to downsample images. See [the WASM evaluation](docs/PDF_COMPRESSION_WASM_EVALUATION.md) for the licensing, isolation, cleanup, and testing gate.
+
 ## Local development
 
 ```bash

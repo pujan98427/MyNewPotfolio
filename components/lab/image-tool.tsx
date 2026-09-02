@@ -5,6 +5,9 @@ import Image from "next/image";
 import {useRouter} from "next/navigation";
 import styles from "./simple-tools.module.css";
 import {saveImageHandoff,takeImageHandoff} from "@/lib/lab/image-handoff";
+import {useMobileResultScroll} from "@/lib/lab/use-mobile-result-scroll";
+import {FileDropZone} from "@/components/lab/file-drop-zone";
+import {validateImageFile} from "@/lib/lab/file-validation";
 import {imageResizePresets} from "@/data/image-resize-presets";
 
 export type ImageMode="compress"|"resize"|"convert"|"crop";
@@ -20,6 +23,7 @@ const extensions:Record<string,string>={"image/jpeg":"jpg","image/png":"png","im
 const prettyBytes=(bytes:number)=>bytes<1024?`${bytes} B`:bytes<1048576?`${(bytes/1024).toFixed(1)} KB`:`${(bytes/1048576).toFixed(1)} MB`;
 
 export function ImageTool({mode}:{mode:ImageMode}){
+  const resultRef=useRef<HTMLElement>(null);
   const router=useRouter();
   const [file,setFile]=useState<File|null>(null);
   const [source,setSource]=useState<string|null>(null);
@@ -63,10 +67,9 @@ export function ImageTool({mode}:{mode:ImageMode}){
     const frame=requestAnimationFrame(()=>setAvifOutputSupported(supported));
     return()=>cancelAnimationFrame(frame);
   },[mode]);
-  const choose=(next?:File)=>{
+  const choose=async(next?:File)=>{
     if(!next)return;
-    if(!next.type.startsWith("image/")||next.type==="image/svg+xml"){setError("Choose a PNG, JPEG, WebP, GIF, BMP or AVIF image.");return}
-    if(next.size>25*1024*1024){setError("Choose an image smaller than 25 MB.");return}
+    const validationError=await validateImageFile(next);if(validationError){setError(validationError);return}
     if(source)URL.revokeObjectURL(source);
     if(result)URL.revokeObjectURL(result.url);
     setFile(next);setSource(URL.createObjectURL(next));setResult(null);setFormatComparisons([]);setConvertIntent("website");setFormat("image/webp");setError("");
@@ -77,11 +80,7 @@ export function ImageTool({mode}:{mode:ImageMode}){
       const pasted=Array.from(event.clipboardData?.items??[]).find(item=>item.kind==="file"&&item.type.startsWith("image/"))?.getAsFile();
       if(!pasted)return;
       event.preventDefault();
-      if(pasted.type==="image/svg+xml"){setError("Paste a PNG, JPEG, WebP or other raster image.");return}
-      if(pasted.size>25*1024*1024){setError("Paste an image smaller than 25 MB.");return}
-      if(source)URL.revokeObjectURL(source);
-      if(result)URL.revokeObjectURL(result.url);
-      setFile(pasted);setSource(URL.createObjectURL(pasted));setResult(null);setError("");
+      void validateImageFile(pasted).then(validationError=>{if(validationError){setError(validationError);return}if(source)URL.revokeObjectURL(source);if(result)URL.revokeObjectURL(result.url);setFile(pasted);setSource(URL.createObjectURL(pasted));setResult(null);setError("")});
     };
     window.addEventListener("paste",handlePaste);
     return()=>window.removeEventListener("paste",handlePaste);
@@ -158,6 +157,7 @@ export function ImageTool({mode}:{mode:ImageMode}){
   const choosePreset=(preset:Exclude<CompressionPreset,"custom">)=>{setCompressionPreset(preset);setQuality(preset==="smaller"?60:preset==="balanced"?82:94)};
   const outputName=result&&file?result.outcome==="original"?file.name:`${file.name.replace(/\.[^.]+$/,"")}-${mode}.${extensions[result.blob.type]??"png"}`:"";
   const savedPercent=result&&file?Math.max(0,Math.round((1-result.blob.size/file.size)*100)):0;
+  useMobileResultScroll(Boolean(result),resultRef);
   const download=()=>{if(!result||!file)return;const anchor=document.createElement("a");anchor.href=result.url;anchor.download=outputName;anchor.click()};
   const continueWith=async(nextMode:ImageMode)=>{if(!result)return;setHandoffBusy(nextMode);setError("");try{await saveImageHandoff(result.blob,outputName);router.push(routes[nextMode])}catch{setError("This browser could not pass the image to the next tool. Download it instead.");setHandoffBusy(null)}};
 
@@ -166,7 +166,7 @@ export function ImageTool({mode}:{mode:ImageMode}){
     <p className={styles.metadataNote}>Processed exports are newly encoded and may not keep camera, location or other embedded metadata. This can also reduce unintended personal information in the downloaded file.</p>
     <div className={styles.grid}>
       <section className={styles.panel}><h2>Choose an image</h2>
-        <label className={styles.drop} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();choose(event.dataTransfer.files[0])}}><input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" onChange={event=>choose(event.target.files?.[0])}/><span><strong>Drop an image</strong>or<br/><u>Choose image</u></span></label>
+        <FileDropZone accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" title="Drop an image" restrictions="PNG, JPEG, WebP, GIF, BMP or AVIF · maximum 25 MB" onFiles={files=>void choose(files[0])}/>
         {mode==="compress"&&!source&&<p className={styles.inputHint}>You can also paste an image from your clipboard.</p>}
         {source&&<><div className={styles.preview}><Image unoptimized src={source} alt="Selected image preview" width={width||1} height={height||1} onLoad={onLoad}/></div><p>{file?.name}</p>{mode==="compress"&&file&&<><dl className={styles.originalSummary}><div><dt>Original</dt><dd>{prettyBytes(file.size)}</dd></div><div><dt>Dimensions</dt><dd>{width} × {height}</dd></div><div><dt>Type</dt><dd>{(extensions[file.type]??file.type.replace("image/","")).toUpperCase()}</dd></div></dl><fieldset className={styles.presets}><legend>Choose the result you prefer</legend><label><input type="radio" name="compression-preset" checked={compressionPreset==="smaller"} onChange={()=>choosePreset("smaller")}/><span>Smaller file</span></label><label><input type="radio" name="compression-preset" checked={compressionPreset==="balanced"} onChange={()=>choosePreset("balanced")}/><span>Balanced <small>Recommended</small></span></label><label><input type="radio" name="compression-preset" checked={compressionPreset==="quality"} onChange={()=>choosePreset("quality")}/><span>Keep quality</span></label></fieldset></>}
           {mode==="resize"&&<section className={styles.resizeControls} aria-labelledby="custom-image-size"><div className={styles.currentDimensions}><span>Current size</span><strong>{sourceWidth} × {sourceHeight}</strong></div><fieldset className={styles.modeSwitch}><legend>Resize by</legend><label><input type="radio" name="resize-mode" checked={resizeMode==="pixels"} onChange={()=>setResizeMode("pixels")}/> Pixels</label><label><input type="radio" name="resize-mode" checked={resizeMode==="percentage"} onChange={()=>applyPercentage(resizePercentage)}/> Percentage</label></fieldset>{resizeMode==="percentage"?<div className={styles.field}><label htmlFor="resize-percentage">New size · {resizePercentage}%</label><input id="resize-percentage" type="range" min="10" max="200" step="5" value={resizePercentage} onChange={event=>applyPercentage(Number(event.target.value))}/><small>{width} × {height} px</small></div>:<><h3 id="custom-image-size">Custom size</h3><div className={styles.row}><div className={styles.field}><label htmlFor="image-width">Width</label><input id="image-width" type="number" min="1" max="12000" value={width||""} onChange={event=>{const next=Number(event.target.value);setWidth(next);if(keepProportions&&sourceWidth)setHeight(Math.round(next*sourceHeight/sourceWidth))}}/></div><div className={styles.field}><label htmlFor="image-height">Height</label><input id="image-height" type="number" min="1" max="12000" value={keepProportions?"":height||""} placeholder={keepProportions?`Auto (${height}px)`:"Height"} readOnly={keepProportions} onChange={event=>setHeight(Number(event.target.value))}/></div></div><label className={styles.check}><input type="checkbox" checked={keepProportions} onChange={event=>{const checked=event.target.checked;setKeepProportions(checked);if(checked&&sourceWidth)setHeight(Math.round(width*sourceHeight/sourceWidth))}}/> Keep proportions</label></>}<div className={styles.quickSizes} aria-label="Quick resize choices"><button type="button" onClick={()=>applyPercentage(50)}>50% smaller</button><button type="button" onClick={()=>applyPercentage(75)}>25% smaller</button>{imageResizePresets.map(preset=><button type="button" key={preset.id} onClick={()=>applyResizePreset(preset)}>{preset.label}<small>{preset.width} × {preset.height}</small></button>)}</div><p className={styles.inputHint}>Percentage choices keep the original proportions. Fixed dimension presets are general-purpose sizes, not official platform requirements, and may change the image shape. Use the Crop tool when exact framing matters.</p></section>}
@@ -178,12 +178,12 @@ export function ImageTool({mode}:{mode:ImageMode}){
           {mode==="convert"&&convertIntent==="manual"&&<dl className={styles.formatGuide}><div><dt>JPEG</dt><dd>Good for photographs.<br/>No transparent background.</dd></div><div><dt>PNG</dt><dd>Good for graphics and transparency.<br/>Often larger.</dd></div><div><dt>WebP</dt><dd>Good general web format.<br/>Supports transparency and is often smaller.</dd></div>{avifOutputSupported&&<div><dt>AVIF</dt><dd>Can create small modern image files.<br/>Availability depends on browser support.</dd></div>}</dl>}
           <div className={styles.actions}><button type="button" className={styles.button} onClick={process} disabled={busy}>{busy?"Working…":labels[mode]}</button><button type="button" className={styles.button} data-quiet onClick={clear}>Clear</button></div></>}
       </section>
-      <section className={styles.panel} id={`${mode}-image-result`}><h2>Result</h2>{result&&file?<>
+      <section ref={resultRef} className={styles.panel} id={`${mode}-image-result`}><h2>Result</h2>{result&&file?<>
         <div className={styles.resultHero} role="status"><span className={styles.resultLabel}>{result.outcome==="original"?"Original kept":result.outcome==="tiny"?"Small saving":"Done"}</span><strong className={styles.resultName}>{result.outcome==="original"?"The original is already more efficient.":result.outcome==="tiny"?"This image is already quite small.":outputName}</strong>{mode!=="resize"&&<><div className={styles.sizeChange}><span>{prettyBytes(file.size)}</span><b aria-hidden="true">↓</b><strong>{prettyBytes(result.blob.size)}</strong></div><p>{result.outcome==="original"?"No smaller version was created.":result.outcome==="tiny"?`The new version only saves ${savedPercent}%. Keeping the original may be better.`:`${savedPercent}% smaller`}</p></>}</div>
         <div className={styles.preview}><Image unoptimized src={result.url} alt="Processed image preview" width={result.width} height={result.height}/></div>
         {mode==="resize"?<dl className={styles.resizeResult}><div><dt>Before</dt><dd>{sourceWidth} × {sourceHeight}</dd></div><div><dt>After</dt><dd>{result.width} × {result.height}</dd></div><div><dt>File size</dt><dd>{prettyBytes(file.size)} <span aria-hidden="true">→</span> {prettyBytes(result.blob.size)}</dd></div></dl>:mode==="crop"?<dl className={styles.cropResult}><div><dt>Original</dt><dd>{sourceWidth} × {sourceHeight}</dd></div><div><dt>Crop</dt><dd>{result.width} × {result.height}</dd></div></dl>:<dl className={styles.stats}><div><dt>Filename</dt><dd>{outputName}</dd></div><div><dt>Format</dt><dd>{(extensions[result.blob.type]??"image").toUpperCase()}</dd></div><div><dt>Dimensions</dt><dd>{result.width} × {result.height}</dd></div><div><dt>Size</dt><dd>{prettyBytes(result.blob.size)}</dd></div><div><dt>Saved</dt><dd>{savedPercent}%</dd></div></dl>}
         {mode==="convert"&&formatComparisons.length>0&&<section className={styles.formatComparison} aria-labelledby="format-comparison-heading"><h3 id="format-comparison-heading">Real file-size comparison</h3><p>Generated in this browser from the current image and quality setting.</p><dl>{formatComparisons.map(candidate=>{const smallest=Math.min(...formatComparisons.map(item=>item.size))===candidate.size;return <div key={candidate.type}><dt>{(extensions[candidate.type]??candidate.type).toUpperCase()}</dt><dd>{prettyBytes(candidate.size)} {smallest&&<strong>Smallest</strong>}</dd></div>})}</dl></section>}
-        <div className={styles.actions}><button type="button" className={styles.button} onClick={download}>{result.outcome==="original"?"Keep original":mode==="compress"?"Download compressed image":mode==="resize"?"Download resized image":mode==="crop"?"Download cropped image":`Download ${outputName}`}</button></div>
+        <div className={styles.actions}><button type="button" className={styles.button} onClick={download} aria-label={result.outcome==="original"?"Download original image":mode==="compress"?"Download compressed image":mode==="resize"?"Download resized image":mode==="crop"?"Download cropped image":`Download ${outputName}`}>{result.outcome==="original"?"Keep original":"Download"}</button></div>
         <nav className={styles.resultLinks} aria-label="Use this image in another tool"><span>Use this result without uploading again</span>{(["compress","resize","crop","convert"] as const).filter(next=>next!==mode).map(next=><button type="button" key={next} disabled={handoffBusy!==null} onClick={()=>void continueWith(next)}>{handoffBusy===next?"Opening…":mode==="crop"?`${next[0].toUpperCase()}${next.slice(1)} →`:`${next[0].toUpperCase()}${next.slice(1)} this image`}</button>)}</nav>
       </>:<p>Your processed image and its real file size will appear here.</p>}<p className={styles.status} data-error={Boolean(error)} role="status">{error}</p></section>
     </div>
