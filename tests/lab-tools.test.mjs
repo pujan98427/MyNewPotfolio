@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readFileSync,readdirSync} from "node:fs";
 import ts from "typescript";
 
 function load(path){const source=readFileSync(path,"utf8"),compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText,module={exports:{}};new Function("require","module","exports",compiled)(require=>{throw new Error(`Unexpected import: ${require}`)},module,module.exports);return module.exports}
@@ -18,7 +18,18 @@ const localSources=["components/lab/image-tool.tsx","components/lab/pdf-tool.tsx
 const fileValidation=readFileSync("lib/lab/file-validation.ts","utf8");
 assert.match(fileValidation,/PNG/);assert.match(fileValidation,/RIFF/);assert.match(fileValidation,/WEBP/);assert.match(fileValidation,/%PDF-/);
 assert.match(fileValidation,/createImageBitmap/);assert.match(fileValidation,/file\.slice\(0,32\)/);assert.match(fileValidation,/file\.slice\(0,5\)/);
+const imageProcessorMemory=readFileSync("lib/lab/process-image.ts","utf8");
+assert.match(imageProcessorMemory,/canvas\.width=0;canvas\.height=0/);
+assert.match(imageProcessorMemory,/canvas\.width=1;canvas\.height=1/);
+assert.match(imageProcessorMemory,/decoded\.close\(\)/);
+assert.match(fileValidation,/image\.src="";URL\.revokeObjectURL/);
 assert.doesNotMatch(localSources,/fetch\(|XMLHttpRequest|axios|\/api\//);
+const localToolRoutes=expected.map(slug=>readFileSync(`app/lab/${slug}/page.tsx`,"utf8")).join("\n");
+assert.doesNotMatch(localToolRoutes,/\/api\/|FormData|server action|use server/i);
+const apiRoutes=readdirSync("app/api",{recursive:true}).map(String).join("\n");
+for(const slug of expected)assert.doesNotMatch(apiRoutes,new RegExp(slug),`${slug} must not gain an upload API`);
+const productionDependencies=Object.keys(JSON.parse(readFileSync("package.json","utf8")).dependencies??{}).join("\n");
+assert.doesNotMatch(productionDependencies,/@aws-sdk|\bs3\b|firebase|supabase|prisma/i);
 const pdfToolSource=readFileSync("components/lab/pdf-tool.tsx","utf8");
 assert.match(pdfToolSource,/useObjectStreams:true/);
 assert.match(pdfToolSource,/savePdfHandoff/);
