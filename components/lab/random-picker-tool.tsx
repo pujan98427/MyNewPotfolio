@@ -4,13 +4,10 @@ import {useEffect,useMemo,useRef,useState} from "react";
 import styles from "./simple-tools.module.css";
 import {useMobileResultScroll} from "@/lib/lab/use-mobile-result-scroll";
 import {trackProductEvent} from "@/lib/analytics/product-events";
+import {parsePickerChoices as parse,secureShuffle} from "@/lib/lab/random-core";
 
 type PickerMode="one"|"several"|"shuffle";
-const UINT32_RANGE=0x100000000;
 const REMEMBERED_LIST_KEY="pujan-lab-random-picker-list";
-const parse=(value:string)=>value.split(/\r?\n/).map(item=>item.trim()).filter(Boolean);
-function unbiasedRandomIndex(length:number){if(!Number.isSafeInteger(length)||length<1||length>UINT32_RANGE)throw new RangeError("Random selection requires a non-empty supported list.");const limit=UINT32_RANGE-(UINT32_RANGE%length),values=new Uint32Array(1);do{crypto.getRandomValues(values)}while(values[0]>=limit);return values[0]%length}
-function secureShuffle<T>(values:T[]){const shuffled=[...values];for(let index=shuffled.length-1;index>0;index--){const selected=unbiasedRandomIndex(index+1);[shuffled[index],shuffled[selected]]=[shuffled[selected],shuffled[index]]}return shuffled}
 
 export function RandomPickerTool(){
   const resultRef=useRef<HTMLElement>(null);

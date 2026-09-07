@@ -4,7 +4,7 @@ import {useEffect,useRef,useState,type CSSProperties} from "react";
 import Image from "next/image";
 import {useRouter} from "next/navigation";
 import styles from "./simple-tools.module.css";
-import {saveImageHandoff,takeImageHandoff} from "@/lib/lab/image-handoff";
+import {clearImageHandoff,saveImageHandoff,takeImageHandoff} from "@/lib/lab/image-handoff";
 import {useMobileResultScroll} from "@/lib/lab/use-mobile-result-scroll";
 import {FileDropZone} from "@/components/lab/file-drop-zone";
 import {validateImageFile} from "@/lib/lab/file-validation";
@@ -20,12 +20,14 @@ type CompressionPreset="smaller"|"balanced"|"quality"|"custom";
 type CompressionOutcome="smaller"|"tiny"|"original"|"processed";
 type Result={url:string;blob:Blob;width:number;height:number;outcome:CompressionOutcome};
 type FormatComparison={type:string;size:number};
+type BatchResult={file:File;status:"queued"|"processing"|"done"|"error";blob?:Blob;url?:string;name?:string;message?:string};
 const labels:Record<ImageMode,string>={compress:"Compress image",resize:"Resize image",convert:"Convert image",crop:"Crop image"};
 const routes:Record<ImageMode,string>={compress:"/lab/image-compressor",resize:"/lab/image-resizer",convert:"/lab/image-format-converter",crop:"/lab/image-cropper"};
 const analyticsToolNames:Record<ImageMode,ImageToolName>={compress:"image-compressor",resize:"image-resizer",convert:"image-format-converter",crop:"image-cropper"};
 const extensions:Record<string,string>={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/avif":"avif"};
 const prettyBytes=(bytes:number)=>bytes<1024?`${bytes} B`:bytes<1048576?`${(bytes/1024).toFixed(1)} KB`:`${(bytes/1048576).toFixed(1)} MB`;
 const analyticsFormat=(mime:string):AnalyticsFileFormat=>mime==="image/jpeg"?"jpeg":mime==="image/png"?"png":mime==="image/webp"?"webp":mime==="image/avif"?"avif":mime==="image/gif"?"gif":mime==="image/bmp"?"bmp":"unknown";
+const safeImageBase=(name:string)=>name.replace(/\.[^.]+$/," ").trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,"-").replace(/\s+/g,"-").slice(0,90)||"image";
 
 export function ImageTool({mode}:{mode:ImageMode}){
   const resultRef=useRef<HTMLElement>(null);
@@ -58,12 +60,16 @@ export function ImageTool({mode}:{mode:ImageMode}){
   const [cropRotation,setCropRotation]=useState(0);
   const [busy,setBusy]=useState(false);
   const [handoffBusy,setHandoffBusy]=useState<ImageMode|null>(null);
+  const [batch,setBatch]=useState<BatchResult[]>([]);
+  const batchRef=useRef<BatchResult[]>([]);
   const imageRef=useRef<HTMLImageElement|null>(null);
   const cropCanvasRef=useRef<HTMLDivElement|null>(null);
   const cropDraggingRef=useRef(false);
 
   useEffect(()=>()=>{if(source)URL.revokeObjectURL(source)},[source]);
   useEffect(()=>()=>{if(result)URL.revokeObjectURL(result.url)},[result]);
+  useEffect(()=>{batchRef.current=batch},[batch]);
+  useEffect(()=>()=>{for(const item of batchRef.current)if(item.url)URL.revokeObjectURL(item.url)},[]);
   useEffect(()=>{let active=true;void takeImageHandoff().then(next=>{if(!active||!next)return;setFile(next);setSource(URL.createObjectURL(next));setResult(null);setError("")}).catch(()=>{});return()=>{active=false}},[]);
   useEffect(()=>{
     if(mode!=="convert")return;
@@ -78,6 +84,13 @@ export function ImageTool({mode}:{mode:ImageMode}){
     if(source)URL.revokeObjectURL(source);
     if(result)URL.revokeObjectURL(result.url);
     setFile(next);setSource(URL.createObjectURL(next));setResult(null);setFormatComparisons([]);setConvertIntent("website");setFormat("image/webp");setError("");
+  };
+  const chooseFiles=async(files:File[])=>{
+    if(mode!=="compress"||files.length===1){setBatch([]);await choose(files[0]);return}
+    const selected=files.slice(0,10),accepted:BatchResult[]=[];let rejected=0;
+    for(const candidate of selected){const validationError=await validateImageFile(candidate);if(validationError)rejected++;else accepted.push({file:candidate,status:"queued"})}
+    if(source)URL.revokeObjectURL(source);if(result)URL.revokeObjectURL(result.url);for(const item of batch)if(item.url)URL.revokeObjectURL(item.url);
+    setFile(null);setSource(null);setResult(null);setBatch(accepted);setError(rejected?`${rejected} ${rejected===1?"file was":"files were"} skipped because the format, content or size was not supported.`:files.length>10?"The first 10 images were added. Process another batch when these are finished.":"");
   };
   useEffect(()=>{
     if(mode!=="compress")return;
@@ -162,22 +175,37 @@ export function ImageTool({mode}:{mode:ImageMode}){
       else trackProductEvent("image_cropped",formats);
     }catch(caught){setError(imageToolError(caught))}finally{setBusy(false)}
   };
+  const processBatch=async()=>{
+    if(!batch.length)return;setBusy(true);setError("");
+    try{
+      const {processImage}=await import("@/lib/lab/process-image");
+      for(let index=0;index<batch.length;index++){
+        setBatch(current=>current.map((item,itemIndex)=>itemIndex===index?{...item,status:"processing"}:item));const current=batch[index];
+        try{const processed=await processImage({file:current.file,mode:"compress",width:0,height:0,quality:quality/100,outputType:"image/webp",ratio:"free",position:50}),keepOriginal=processed.blob.size>=current.file.size,blob=keepOriginal?current.file:processed.blob,name=keepOriginal?current.file.name:`${safeImageBase(current.file.name)}-compressed.${extensions[blob.type]??"webp"}`,url=URL.createObjectURL(blob);setBatch(items=>items.map((item,itemIndex)=>itemIndex===index?{...item,status:"done",blob,url,name}:item))}
+        catch(failure){setBatch(items=>items.map((item,itemIndex)=>itemIndex===index?{...item,status:"error",message:imageToolError(failure)}:item))}
+      }
+    }catch(failure){setError(imageToolError(failure))}finally{setBusy(false)}
+  };
   const resetCrop=()=>{setRatio("free");setCropX(50);setCropY(50);setCropScale(85);setFreeCropWidth(75);setFreeCropHeight(75);setCropZoom(1);setCropRotation(0)};
-  const clear=()=>{if(source)URL.revokeObjectURL(source);if(result)URL.revokeObjectURL(result.url);setFile(null);setSource(null);setResult(null);setFormatComparisons([]);setSourceWidth(0);setSourceHeight(0);setKeepProportions(true);setResizeMode("pixels");setResizePercentage(50);setPreventUpscaling(true);setConvertIntent("website");setFormat("image/webp");resetCrop();setQuality(82);setCompressionPreset("balanced");setError("")};
+  const clear=()=>{if(source)URL.revokeObjectURL(source);if(result)URL.revokeObjectURL(result.url);for(const item of batch)if(item.url)URL.revokeObjectURL(item.url);void clearImageHandoff().catch(()=>{});setBatch([]);setFile(null);setSource(null);setResult(null);setFormatComparisons([]);setSourceWidth(0);setSourceHeight(0);setKeepProportions(true);setResizeMode("pixels");setResizePercentage(50);setPreventUpscaling(true);setConvertIntent("website");setFormat("image/webp");resetCrop();setQuality(82);setCompressionPreset("balanced");setError("")};
   const choosePreset=(preset:Exclude<CompressionPreset,"custom">)=>{setCompressionPreset(preset);setQuality(preset==="smaller"?60:preset==="balanced"?82:94)};
-  const outputName=result&&file?result.outcome==="original"?file.name:`${file.name.replace(/\.[^.]+$/,"")}-${mode}.${extensions[result.blob.type]??"png"}`:"";
+  const outputName=result&&file?result.outcome==="original"?file.name:`${safeImageBase(file.name)}-${mode==="resize"?`${result.width}x${result.height}`:mode==="compress"?"compressed":mode==="crop"?"cropped":"converted"}.${extensions[result.blob.type]??"png"}`:"";
   const savedPercent=result&&file?Math.max(0,Math.round((1-result.blob.size/file.size)*100)):0;
   useMobileResultScroll(Boolean(result),resultRef);
   const download=()=>{if(!result||!file)return;trackProductEvent("image_downloaded",{tool_name:analyticsToolNames[mode],input_format:analyticsFormat(file.type),output_format:analyticsFormat(result.blob.type)});const anchor=document.createElement("a");anchor.href=result.url;anchor.download=outputName;anchor.click()};
   const continueWith=async(nextMode:ImageMode)=>{if(!result)return;trackProductEvent("image_handoff_clicked",{from_tool:analyticsToolNames[mode],to_tool:analyticsToolNames[nextMode],output_format:analyticsFormat(result.blob.type)});setHandoffBusy(nextMode);setError("");try{await saveImageHandoff(result.blob,outputName);router.push(routes[nextMode])}catch{setError("This browser could not pass the image to the next tool. Download it instead.");setHandoffBusy(null)}};
+
+  const batchOriginalSize=batch.reduce((total,item)=>total+item.file.size,0),batchOutputSize=batch.reduce((total,item)=>total+(item.blob?.size??0),0),batchComplete=batch.length>0&&batch.every(item=>item.status==="done"||item.status==="error");
+  const downloadBatchItem=(item:BatchResult)=>{if(!item.url||!item.name)return;const anchor=document.createElement("a");anchor.href=item.url;anchor.download=item.name;anchor.click()};
 
   return <div className={styles.workspace} data-tool-processing={busy||undefined} aria-busy={busy}>
     <p className={styles.privacy}>Your image is processed locally in this browser and is not uploaded.</p>
     <p className={styles.metadataNote}>Processed exports are newly encoded and may not keep camera, location or other embedded metadata. This can also reduce unintended personal information in the downloaded file.</p>
     <div className={styles.grid}>
       <section className={styles.panel}><h2>Choose an image</h2>
-        <FileDropZone accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" title="Drop an image" restrictions="PNG, JPEG, WebP, GIF, BMP or AVIF · maximum 25 MB" onFiles={files=>void choose(files[0])}/>
-        {mode==="compress"&&!source&&<p className={styles.inputHint}>You can also paste an image from your clipboard.</p>}
+        <FileDropZone accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" title={mode==="compress"?"Drop images":"Drop an image"} restrictions={`PNG, JPEG, WebP, GIF, BMP or AVIF · maximum 25 MB${mode==="compress"?" each · up to 10 images":""}`} multiple={mode==="compress"} disabled={busy} onFiles={files=>void chooseFiles(files)}/>
+        {mode==="compress"&&!source&&!batch.length&&<p className={styles.inputHint}>Choose one image for the full comparison, or several images for a measured batch. You can also paste one image from your clipboard.</p>}
+        {mode==="compress"&&batch.length>0&&<section className={styles.batchPanel} aria-labelledby="batch-images-heading"><h3 id="batch-images-heading">{batch.length} images ready</h3><p>Balanced WebP compression is applied locally. Each original is kept when it is already smaller.</p><ol>{batch.map((item,index)=><li key={`${item.file.name}-${item.file.lastModified}-${index}`}><div><strong>{item.file.name}</strong><small>{prettyBytes(item.file.size)}</small></div><span className={styles.batchStatus}>{item.status==="queued"?"Waiting":item.status==="processing"?"Compressing…":item.status==="error"?item.message:"Done"}</span>{item.status==="done"&&<><small>{prettyBytes(item.blob?.size??0)}</small><button type="button" className={styles.button} data-quiet onClick={()=>downloadBatchItem(item)}>Download</button></>}</li>)}</ol><dl className={styles.batchTotals}><div><dt>Total original</dt><dd>{prettyBytes(batchOriginalSize)}</dd></div><div><dt>Total output</dt><dd>{batchComplete?prettyBytes(batchOutputSize):"—"}</dd></div></dl><div className={styles.actions}><button type="button" className={styles.button} onClick={()=>void processBatch()} disabled={busy||batchComplete}>{busy?"Compressing images…":batchComplete?"Batch complete":"Compress images"}</button><button type="button" className={styles.button} data-quiet onClick={clear} disabled={busy}>Clear</button></div><p className={styles.status} role="status" aria-live="polite">{busy?`${batch.filter(item=>item.status==="done"||item.status==="error").length} of ${batch.length} finished.`:batchComplete?"Batch processing complete. Download each result below.":""}</p></section>}
         {source&&<><div className={styles.preview}><Image unoptimized src={source} alt="Selected image preview" width={width||1} height={height||1} onLoad={onLoad}/></div><p>{file?.name}</p>{mode==="compress"&&file&&<><dl className={styles.originalSummary}><div><dt>Original</dt><dd>{prettyBytes(file.size)}</dd></div><div><dt>Dimensions</dt><dd>{width} × {height}</dd></div><div><dt>Type</dt><dd>{(extensions[file.type]??file.type.replace("image/","")).toUpperCase()}</dd></div></dl><fieldset className={styles.presets}><legend>Choose the result you prefer</legend><label><input type="radio" name="compression-preset" checked={compressionPreset==="smaller"} onChange={()=>choosePreset("smaller")}/><span>Smaller file</span></label><label><input type="radio" name="compression-preset" checked={compressionPreset==="balanced"} onChange={()=>choosePreset("balanced")}/><span>Balanced <small>Recommended</small></span></label><label><input type="radio" name="compression-preset" checked={compressionPreset==="quality"} onChange={()=>choosePreset("quality")}/><span>Keep quality</span></label></fieldset></>}
           {mode==="resize"&&<section className={styles.resizeControls} aria-labelledby="custom-image-size"><div className={styles.currentDimensions}><span>Current size</span><strong>{sourceWidth} × {sourceHeight}</strong></div><fieldset className={styles.modeSwitch}><legend>Resize by</legend><label><input type="radio" name="resize-mode" checked={resizeMode==="pixels"} onChange={()=>setResizeMode("pixels")}/> Pixels</label><label><input type="radio" name="resize-mode" checked={resizeMode==="percentage"} onChange={()=>applyPercentage(resizePercentage)}/> Percentage</label></fieldset>{resizeMode==="percentage"?<div className={styles.field}><label htmlFor="resize-percentage">New size · {resizePercentage}%</label><input id="resize-percentage" type="range" min="10" max="200" step="5" value={resizePercentage} onChange={event=>applyPercentage(Number(event.target.value))}/><small>{width} × {height} px</small></div>:<><h3 id="custom-image-size">Custom size</h3><div className={styles.row}><div className={styles.field}><label htmlFor="image-width">Width</label><input id="image-width" type="number" min="1" max="12000" value={width||""} onChange={event=>{const next=Number(event.target.value);setWidth(next);if(keepProportions&&sourceWidth)setHeight(Math.round(next*sourceHeight/sourceWidth))}}/></div><div className={styles.field}><label htmlFor="image-height">Height</label><input id="image-height" type="number" min="1" max="12000" value={keepProportions?"":height||""} placeholder={keepProportions?`Auto (${height}px)`:"Height"} readOnly={keepProportions} onChange={event=>setHeight(Number(event.target.value))}/></div></div><label className={styles.check}><input type="checkbox" checked={keepProportions} onChange={event=>{const checked=event.target.checked;setKeepProportions(checked);if(checked&&sourceWidth)setHeight(Math.round(width*sourceHeight/sourceWidth))}}/> Keep proportions</label></>}<div className={styles.quickSizes} aria-label="Quick resize choices"><button type="button" onClick={()=>applyPercentage(50)}>50% smaller</button><button type="button" onClick={()=>applyPercentage(75)}>25% smaller</button>{imageResizePresets.map(preset=><button type="button" key={preset.id} onClick={()=>applyResizePreset(preset)}>{preset.label}<small>{preset.width} × {preset.height}</small></button>)}</div><p className={styles.inputHint}>Percentage choices keep the original proportions. Fixed dimension presets are general-purpose sizes, not official platform requirements, and may change the image shape. Use the Crop tool when exact framing matters.</p></section>}
           {mode==="crop"&&<section className={styles.cropWorkspace} aria-labelledby="visual-crop-heading"><h3 id="visual-crop-heading">Position the crop</h3><p>Drag the outlined area over the part of the image you want to keep.</p><div className={styles.cropCanvas} ref={cropCanvasRef} style={cropCanvasStyle}><Image unoptimized src={source} alt="Image with adjustable crop area" width={sourceWidth||1} height={sourceHeight||1} style={cropImageStyle}/><div className={styles.cropFrame} style={cropStyle} role="slider" tabIndex={0} aria-label="Crop area position" aria-valuemin={0} aria-valuemax={100} aria-valuetext={`Horizontal ${Math.round(cropX)}%, vertical ${Math.round(cropY)}%`} aria-valuenow={Math.round((cropX+cropY)/2)} onPointerDown={event=>{cropDraggingRef.current=true;event.currentTarget.setPointerCapture(event.pointerId);moveCrop(event)}} onPointerMove={event=>{if(cropDraggingRef.current)moveCrop(event)}} onPointerUp={event=>{cropDraggingRef.current=false;if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId)}} onPointerCancel={()=>{cropDraggingRef.current=false}} onKeyDown={event=>{const amount=2;if(event.key==="ArrowLeft")setCropX(current=>Math.max(0,current-amount));else if(event.key==="ArrowRight")setCropX(current=>Math.min(100,current+amount));else if(event.key==="ArrowUp")setCropY(current=>Math.max(0,current-amount));else if(event.key==="ArrowDown")setCropY(current=>Math.min(100,current+amount));else return;event.preventDefault()}}><span>Drag to position</span></div></div></section>}

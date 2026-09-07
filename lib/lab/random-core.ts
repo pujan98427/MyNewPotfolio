@@ -1,0 +1,4 @@
+const UINT32_RANGE=0x100000000;
+export function unbiasedRandomIndex(length:number,fill:(values:Uint32Array)=>void=values=>crypto.getRandomValues(values)){if(!Number.isSafeInteger(length)||length<1||length>UINT32_RANGE)throw new RangeError("Random selection requires a non-empty supported list.");const limit=UINT32_RANGE-(UINT32_RANGE%length),values=new Uint32Array(1);do{fill(values)}while(values[0]>=limit);return values[0]%length}
+export function secureShuffle<T>(values:T[],fill?:(values:Uint32Array)=>void){const shuffled=[...values];for(let index=shuffled.length-1;index>0;index--){const selected=unbiasedRandomIndex(index+1,fill);[shuffled[index],shuffled[selected]]=[shuffled[selected],shuffled[index]]}return shuffled}
+export function parsePickerChoices(value:string){return value.split(/\r?\n/).map(item=>item.trim()).filter(Boolean)}

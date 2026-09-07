@@ -580,6 +580,12 @@ footer { display:flex; justify-content:space-between; border-top:1px solid var(-
 .tool-stage-heading h2 { margin:0; font-family:var(--font-body); font-size:var(--text-label); font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
 .tool-stage-heading::after { content:""; flex:1; height:1px; background:var(--rule-hairline); }
 .tool-workspace>.tool-stage-heading+* { margin-top:1.25rem; }
+.tool-flow { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1px; margin:1.25rem 0 0; padding:0; background:var(--rule-hairline); list-style:none; }
+.tool-flow li { display:flex; align-items:baseline; gap:.65rem; min-width:0; padding:.75rem 0; background:var(--color-canvas); color:var(--color-muted); font-size:.7rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.tool-flow li span { color:var(--color-brand-strong); font-size:.6rem; }
+.tool-flow li::after { content:"↓"; margin-left:auto; padding-right:.4rem; color:var(--color-brand-strong); }
+.tool-flow li:last-child::after { content:"→"; }
+@media(max-width:520px) { .tool-flow { grid-template-columns:1fr 1fr; } }
 .tool-next-actions { display:grid; grid-template-columns:minmax(10rem,.5fr) minmax(0,1.5fr); gap:1rem 2rem; margin-top:clamp(3rem,7vw,7rem); padding-block:clamp(2rem,4vw,4rem); border-block:1px solid var(--rule-hairline); }
 .tool-next-actions h2,.tool-related>h2 { margin:0; max-width:18ch; font-family:var(--font-serif),serif; font-size:clamp(1.75rem,3vw,3rem); font-weight:400; line-height:1; }
 .tool-next-actions>div { grid-column:2; display:flex; flex-wrap:wrap; gap:1rem 2rem; }
