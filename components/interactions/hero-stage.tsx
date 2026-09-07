@@ -114,7 +114,6 @@ export function HeroStage() {
   }, []);
 
   return <section className="hero-stage" ref={stageRef} aria-labelledby="hero-title">
-    <div className="hero-art" aria-hidden="true"><i /><i /><i /></div>
     <p className="hero-identity"><strong>{PERSON_NAME}</strong><i aria-hidden="true">/</i><span>{PERSON_ROLE}</span></p>
     <h1 id="hero-title">
       <span className="hero-line-mask hero-line-one"><span className="hero-word hero-word-one">I turn ideas</span></span>
@@ -124,6 +123,7 @@ export function HeroStage() {
       <p>Frontend developer building fast, thoughtful and interactive web experiences.</p>
     </div>
     <div className="hero-project-canvas hero-original-art">
+      <span className="hero-portrait-index" aria-hidden="true">01</span>
       <div className="hero-portrait-frame">
         <div className="hero-portrait-entrance">
           <Image
