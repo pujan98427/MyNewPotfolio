@@ -278,7 +278,7 @@ details[open]>summary { color:var(--color-link-hover); }
 .hero-project-canvas img { width:100%; height:auto; }
 .hero-original-art { position:absolute; left:auto; right:var(--spacing-gutter); bottom:0; width:min(44vw,42rem); height:min(68vh,44rem); padding:0; overflow:hidden; border-left:1px solid var(--rule-hairline); background:var(--color-brand-soft); color:inherit; pointer-events:none; transform:translate3d(0,calc(var(--hero-scroll) * -3rem),0); }
 .hero-original-art:after { content:""; position:absolute; inset:auto 0 0; height:30%; background:linear-gradient(transparent,var(--color-canvas)); pointer-events:none; }
-.hero-portrait-index { position:absolute; z-index:3; top:1rem; right:1rem; padding:0; color:var(--color-brand-strong); font-size:var(--text-micro); letter-spacing:.12em; }
+.hero-portrait-location { position:absolute; z-index:3; right:1rem; bottom:1rem; padding:.4rem .5rem; background:var(--color-canvas); color:var(--color-ink); font-size:var(--text-micro); font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
 .hero-portrait-frame { width:100%; height:100%; clip-path:inset(var(--hero-clip-top) 2% var(--hero-clip-bottom) 2%); transform:translate3d(0,var(--hero-image-y),0) scale(var(--hero-image-scale)); transform-origin:50% 70%; }
 .hero-portrait-frame { clip-path:inset(var(--hero-clip-top) 0 var(--hero-clip-bottom)); }
 .hero-portrait-entrance { width:100%; }

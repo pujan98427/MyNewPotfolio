@@ -123,7 +123,7 @@ export function HeroStage() {
       <p>Frontend developer building fast, thoughtful and interactive web experiences.</p>
     </div>
     <div className="hero-project-canvas hero-original-art">
-      <span className="hero-portrait-index" aria-hidden="true">01</span>
+      <span className="hero-portrait-location">Glasgow, Scotland</span>
       <div className="hero-portrait-frame">
         <div className="hero-portrait-entrance">
           <Image
