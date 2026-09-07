@@ -127,9 +127,10 @@ export function HeroStage() {
       <div className="hero-portrait-frame">
         <div className="hero-portrait-entrance">
           <Image
-            src="/pujan-chapagain-hero.png"
+            // Cropped derivative of /pujan-chapagain-hero.png; keep the original for future edits.
+            src="/pujan-chapagain-hero-cropped.webp"
             alt={`${PERSON_NAME} wearing sunglasses`}
-            width={1440}
+            width={650}
             height={500}
             sizes="(max-width: 820px) 100vw, (max-height: 720px) min(39vw, 31rem), (max-height: 900px) min(42vw, 36rem), min(44vw, 42rem)"
             preload

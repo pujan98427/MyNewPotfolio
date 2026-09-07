@@ -888,7 +888,7 @@ footer { display:flex; justify-content:space-between; border-top:1px solid var(-
   .doctor-report { animation:doctor-report-enter var(--duration-medium) var(--ease-out) both; }
   @keyframes hero-line-reveal { from { clip-path:inset(100% 0 0); transform:translateY(.14em); } to { clip-path:inset(0); transform:translateY(0); } }
   @keyframes hero-portrait-reveal { from { clip-path:inset(100% 0 0); } to { clip-path:inset(0); } }
-  @keyframes hero-portrait-settle { from { transform:translateX(-50%) scale(1.04); filter:blur(3px); } to { transform:translateX(-50%) scale(1); filter:blur(0); } }
+  @keyframes hero-portrait-settle { from { opacity:.72; transform:translateX(-50%) scale(1.025); } to { opacity:1; transform:translateX(-50%) scale(1); } }
   @keyframes doctor-report-enter { from { opacity:0; transform:translateY(.5rem); } to { opacity:1; transform:none; } }
 }
 @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }
