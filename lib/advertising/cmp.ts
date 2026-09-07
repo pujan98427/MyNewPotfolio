@@ -5,7 +5,9 @@ import { useSyncExternalStore } from "react";
 export type AdvertisingConsent = "not-configured"|"pending"|"accepted"|"rejected";
 
 export interface CertifiedCmpAdapter {
+  certification:"google-certified-cmp";
   getAdvertisingConsent():AdvertisingConsent;
+  getPersonalizationConsent():AdvertisingConsent;
   subscribe(listener:()=>void):()=>void;
 }
 
@@ -34,7 +36,17 @@ function subscribe(listener:()=>void){
 }
 
 function getSnapshot():AdvertisingConsent{return adapter?.getAdvertisingConsent()??"not-configured";}
+function getPersonalizationSnapshot():AdvertisingConsent{return adapter?.getPersonalizationConsent()??"not-configured";}
 
 export function useAdvertisingConsent(){
   return useSyncExternalStore(subscribe,getSnapshot,()=>"not-configured");
+}
+
+/**
+ * A rejected value is a resolved choice, not permission to personalise.
+ * The certified CMP must communicate that choice through Google's consent
+ * signals; this application does not infer or manufacture those signals.
+ */
+export function useAdvertisingPersonalizationConsent(){
+  return useSyncExternalStore(subscribe,getPersonalizationSnapshot,()=>"not-configured");
 }

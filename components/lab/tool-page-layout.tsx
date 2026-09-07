@@ -8,6 +8,7 @@ import { ToolAdvertisementSlot } from "@/components/lab/tool-advertisement";
 import { labTools } from "@/data/lab-tools";
 import { getToolEducation } from "@/data/tool-education";
 import { webApplicationStructuredData } from "@/lib/seo/structured-data";
+import { ToolOpenedEvent } from "@/components/analytics/tool-opened-event";
 
 type SharedProps={title:string;description:string;path:`/lab/${string}`;children:ReactNode;variant?:"editorial"|"compact"|"product";advertisement?:ReactNode};
 type ToolPageLayoutProps=SharedProps&({immersive?:false;education?:never}|{immersive:true;education:React.ReactNode});
@@ -23,9 +24,10 @@ export function ToolPageLayout({title,description,path,children,variant="editori
   const relatedTools=labTools.filter(item=>item.slug!==tool.slug&&item.category===tool.category).slice(0,4);
   const schema=webApplicationStructuredData({name:title,description,path,category:tool.category});
   return <main id="main"><section className={`tool-page tool-page-${variant} tool-page-${tool.slug}${immersive?" tool-page-immersive":""}`}>
+    <ToolOpenedEvent toolName={tool.slug} />
     <Breadcrumbs items={[{label:"Lab",href:"/lab"},{label:title,href:path}]} />
     {!immersive&&<header><p className="eyebrow">Frontend lab</p><h1>{title}</h1><p>{description}</p></header>}
-    {immersive?children:<section className="tool-workspace" aria-labelledby={`${tool.slug}-workspace`}><div className="tool-stage-heading"><h2 id={`${tool.slug}-workspace`}>Tool</h2></div>{children}</section>}
+    {immersive?children:<section className="tool-workspace" id={`${tool.slug}-workspace`} aria-labelledby={`${tool.slug}-workspace-heading`}><div className="tool-stage-heading"><h2 id={`${tool.slug}-workspace-heading`}>Tool</h2></div>{children}</section>}
     {!immersive&&<section className="tool-next-actions" aria-labelledby={`${tool.slug}-next-actions`}>
       <p className="eyebrow">Next useful actions</p>
       <h2 id={`${tool.slug}-next-actions`}>Review the result or choose the next task.</h2>

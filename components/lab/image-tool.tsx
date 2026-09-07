@@ -9,8 +9,10 @@ import {useMobileResultScroll} from "@/lib/lab/use-mobile-result-scroll";
 import {FileDropZone} from "@/components/lab/file-drop-zone";
 import {validateImageFile} from "@/lib/lab/file-validation";
 import {imageResizePresets} from "@/data/image-resize-presets";
+import {compressionBucket,trackProductEvent,type AnalyticsFileFormat} from "@/lib/analytics/product-events";
 
 export type ImageMode="compress"|"resize"|"convert"|"crop";
+type ImageToolName="image-compressor"|"image-resizer"|"image-format-converter"|"image-cropper";
 type ResizeMode="pixels"|"percentage";
 type ConvertIntent="website"|"smaller"|"transparency"|"manual";
 type CompressionPreset="smaller"|"balanced"|"quality"|"custom";
@@ -19,8 +21,10 @@ type Result={url:string;blob:Blob;width:number;height:number;outcome:Compression
 type FormatComparison={type:string;size:number};
 const labels:Record<ImageMode,string>={compress:"Compress image",resize:"Resize image",convert:"Convert image",crop:"Crop image"};
 const routes:Record<ImageMode,string>={compress:"/lab/image-compressor",resize:"/lab/image-resizer",convert:"/lab/image-format-converter",crop:"/lab/image-cropper"};
+const analyticsToolNames:Record<ImageMode,ImageToolName>={compress:"image-compressor",resize:"image-resizer",convert:"image-format-converter",crop:"image-cropper"};
 const extensions:Record<string,string>={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/avif":"avif"};
 const prettyBytes=(bytes:number)=>bytes<1024?`${bytes} B`:bytes<1048576?`${(bytes/1024).toFixed(1)} KB`:`${(bytes/1048576).toFixed(1)} MB`;
+const analyticsFormat=(mime:string):AnalyticsFileFormat=>mime==="image/jpeg"?"jpeg":mime==="image/png"?"png":mime==="image/webp"?"webp":mime==="image/avif"?"avif":mime==="image/gif"?"gif":mime==="image/bmp"?"bmp":"unknown";
 
 export function ImageTool({mode}:{mode:ImageMode}){
   const resultRef=useRef<HTMLElement>(null);
@@ -150,6 +154,11 @@ export function ImageTool({mode}:{mode:ImageMode}){
       const blob=outcome==="original"?file:candidate;
       if(result)URL.revokeObjectURL(result.url);
       setResult({url:URL.createObjectURL(blob),blob,width:processed.width,height:processed.height,outcome});
+      const formats={input_format:analyticsFormat(file.type),output_format:analyticsFormat(blob.type)};
+      if(mode==="compress")trackProductEvent("image_compressed",{...formats,compression_bucket:compressionBucket(Math.max(0,improvement))});
+      else if(mode==="resize")trackProductEvent("image_resized",formats);
+      else if(mode==="convert")trackProductEvent("image_converted",formats);
+      else trackProductEvent("image_cropped",formats);
     }catch(caught){setError(caught instanceof Error?caught.message:"The image could not be processed.")}finally{setBusy(false)}
   };
   const resetCrop=()=>{setRatio("free");setCropX(50);setCropY(50);setCropScale(85);setFreeCropWidth(75);setFreeCropHeight(75);setCropZoom(1);setCropRotation(0)};
@@ -158,10 +167,10 @@ export function ImageTool({mode}:{mode:ImageMode}){
   const outputName=result&&file?result.outcome==="original"?file.name:`${file.name.replace(/\.[^.]+$/,"")}-${mode}.${extensions[result.blob.type]??"png"}`:"";
   const savedPercent=result&&file?Math.max(0,Math.round((1-result.blob.size/file.size)*100)):0;
   useMobileResultScroll(Boolean(result),resultRef);
-  const download=()=>{if(!result||!file)return;const anchor=document.createElement("a");anchor.href=result.url;anchor.download=outputName;anchor.click()};
-  const continueWith=async(nextMode:ImageMode)=>{if(!result)return;setHandoffBusy(nextMode);setError("");try{await saveImageHandoff(result.blob,outputName);router.push(routes[nextMode])}catch{setError("This browser could not pass the image to the next tool. Download it instead.");setHandoffBusy(null)}};
+  const download=()=>{if(!result||!file)return;trackProductEvent("image_downloaded",{tool_name:analyticsToolNames[mode],input_format:analyticsFormat(file.type),output_format:analyticsFormat(result.blob.type)});const anchor=document.createElement("a");anchor.href=result.url;anchor.download=outputName;anchor.click()};
+  const continueWith=async(nextMode:ImageMode)=>{if(!result)return;trackProductEvent("image_handoff_clicked",{from_tool:analyticsToolNames[mode],to_tool:analyticsToolNames[nextMode],output_format:analyticsFormat(result.blob.type)});setHandoffBusy(nextMode);setError("");try{await saveImageHandoff(result.blob,outputName);router.push(routes[nextMode])}catch{setError("This browser could not pass the image to the next tool. Download it instead.");setHandoffBusy(null)}};
 
-  return <div className={styles.workspace}>
+  return <div className={styles.workspace} data-tool-processing={busy||undefined}>
     <p className={styles.privacy}>Your image is processed locally in this browser and is not uploaded.</p>
     <p className={styles.metadataNote}>Processed exports are newly encoded and may not keep camera, location or other embedded metadata. This can also reduce unintended personal information in the downloaded file.</p>
     <div className={styles.grid}>

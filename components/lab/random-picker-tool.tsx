@@ -3,6 +3,7 @@
 import {useEffect,useMemo,useRef,useState} from "react";
 import styles from "./simple-tools.module.css";
 import {useMobileResultScroll} from "@/lib/lab/use-mobile-result-scroll";
+import {trackProductEvent} from "@/lib/analytics/product-events";
 
 type PickerMode="one"|"several"|"shuffle";
 const UINT32_RANGE=0x100000000;
@@ -18,8 +19,8 @@ export function RandomPickerTool(){
   useMobileResultScroll(results.length>0,resultRef);
   useEffect(()=>{let active=true;queueMicrotask(()=>{if(!active)return;try{const saved=localStorage.getItem(REMEMBERED_LIST_KEY);if(saved!==null){setInput(saved);setRememberList(true)}}catch{}finally{setStorageReady(true)}});return()=>{active=false}},[]);
   useEffect(()=>{if(!storageReady)return;try{if(rememberList)localStorage.setItem(REMEMBERED_LIST_KEY,input);else localStorage.removeItem(REMEMBERED_LIST_KEY)}catch{}},[input,rememberList,storageReady]);
-  const choose=()=>{if(choices.length<2){setMessage("Add at least two choices.");setResults([]);return}const shuffled=secureShuffle(choices),count=mode==="one"?1:mode==="several"?Math.min(Math.max(2,pickCount),choices.length):choices.length,next=shuffled.slice(0,count);setResults(next);setMessage("");setCopied(false);if(removeAfter&&mode!=="shuffle"){const selected=new Set(next);setInput(choices.filter(choice=>!selected.has(choice)).join("\n"))}};
-  const removeAndChoose=()=>{const selected=new Set(results),remaining=choices.filter(choice=>!selected.has(choice));setInput(remaining.join("\n"));setCopied(false);if(!remaining.length){setResults([]);setMessage("Every choice has been selected.");return}if(remaining.length===1){setResults(remaining);setMessage("This is the final remaining choice.");return}const shuffled=secureShuffle(remaining),count=mode==="several"?Math.min(Math.max(2,pickCount),remaining.length):1;setResults(shuffled.slice(0,count));setMessage("")};
+  const choose=()=>{if(choices.length<2){setMessage("Add at least two choices.");setResults([]);return}const shuffled=secureShuffle(choices),count=mode==="one"?1:mode==="several"?Math.min(Math.max(2,pickCount),choices.length):choices.length,next=shuffled.slice(0,count);setResults(next);setMessage("");setCopied(false);trackProductEvent("random_pick_completed",{mode,result_count_bucket:next.length===1?"one":"several"});if(removeAfter&&mode!=="shuffle"){const selected=new Set(next);setInput(choices.filter(choice=>!selected.has(choice)).join("\n"))}};
+  const removeAndChoose=()=>{const selected=new Set(results),remaining=choices.filter(choice=>!selected.has(choice));setInput(remaining.join("\n"));setCopied(false);if(!remaining.length){setResults([]);setMessage("Every choice has been selected.");return}if(remaining.length===1){setResults(remaining);setMessage("This is the final remaining choice.");trackProductEvent("random_pick_completed",{mode,result_count_bucket:"one"});return}const shuffled=secureShuffle(remaining),count=mode==="several"?Math.min(Math.max(2,pickCount),remaining.length):1,next=shuffled.slice(0,count);setResults(next);setMessage("");trackProductEvent("random_pick_completed",{mode,result_count_bucket:next.length===1?"one":"several"})};
   const clear=()=>{setInput("");setMode("one");setPickCount(2);setResults([]);setMessage("");setRemoveAfter(false);setRememberList(false);setCopied(false)};
   const copy=async()=>{await navigator.clipboard.writeText(results.join("\n"));setCopied(true);window.setTimeout(()=>setCopied(false),1600)};
   const actionLabel=mode==="one"?"Pick one":mode==="several"?"Pick several":"Shuffle list";

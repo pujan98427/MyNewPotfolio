@@ -21,7 +21,19 @@ type ToolAdvertisement = {
   publisherContentId:string;
 };
 
-export type AdvertisementProps = (ReportAdvertisement|EducationalAdvertisement|ToolAdvertisement)&{children:ReactNode};
+type LabIndexAdvertisement = {
+  placement:"after-lab-directory";
+  context:"lab-index";
+  publisherContentId:string;
+};
+
+type LabDocumentationAdvertisement = {
+  placement:"between-documentation-sections";
+  context:"lab-documentation";
+  publisherContentId:string;
+};
+
+export type AdvertisementProps = (ReportAdvertisement|EducationalAdvertisement|ToolAdvertisement|LabIndexAdvertisement|LabDocumentationAdvertisement)&{children:ReactNode};
 
 /**
  * The only approved wrapper for future advertising placements.
@@ -40,16 +52,20 @@ export type AdvertisementProps = (ReportAdvertisement|EducationalAdvertisement|T
  * Mount this component only beside the completed publisher-created content
  * identified by `publisherContentId`. Never mount it in loading, error, empty,
  * authentication, redirect, not-found or acknowledgement-only states, and do
- * not create a route whose purpose is merely to host this component.
+ * not create a route whose purpose is merely to host this component. It must
+ * remain outside upload, input, result, download, copy and next-action panels.
  */
 export function Advertisement({children,placement,context,publisherContentId}:AdvertisementProps){
   const containerRef=useRef<HTMLElement>(null);
   const [isReady,setIsReady]=useState(false);
+  const [hasPublisherContent,setHasPublisherContent]=useState(false);
   const consent=useAdvertisingConsent();
 
   useEffect(()=>{
     const container=containerRef.current;
-    if(!container)return;
+    const publisherContent=document.getElementById(publisherContentId);
+    if(!container||!publisherContent||publisherContent.textContent.trim().length<20)return;
+    setHasPublisherContent(true);
     if(!("IntersectionObserver" in window)){const timer=setTimeout(()=>setIsReady(true),0);return()=>clearTimeout(timer);}
     const observer=new IntersectionObserver(entries=>{
       if(!entries.some(entry=>entry.isIntersecting))return;
@@ -58,9 +74,9 @@ export function Advertisement({children,placement,context,publisherContentId}:Ad
     },{rootMargin:"400px 0px"});
     observer.observe(container);
     return ()=>observer.disconnect();
-  },[]);
+  },[publisherContentId]);
 
   if(children===null||children===undefined||children===false||consent==="not-configured"||consent==="rejected")return null;
-  const canLoad=isReady&&consent==="accepted";
+  const canLoad=hasPublisherContent&&isReady&&consent==="accepted";
   return <aside ref={containerRef} className="advertisement" data-ad-placement={placement} data-ad-context={context} data-ad-state={canLoad?"ready":"reserved"} data-consent-state={consent} aria-label="Advertisement" aria-describedby={publisherContentId} aria-busy={!canLoad}><span>Advertisement</span><div>{canLoad?children:null}</div></aside>;
 }
