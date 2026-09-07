@@ -114,7 +114,7 @@ export function HeroStage() {
   }, []);
 
   return <section className="hero-stage" ref={stageRef} aria-labelledby="hero-title">
-    <p className="hero-identity"><strong>{PERSON_NAME}</strong><i aria-hidden="true">/</i><span>{PERSON_ROLE}</span></p>
+    <p className="hero-identity"><strong>{PERSON_NAME}</strong><span>{PERSON_ROLE}</span></p>
     <h1 id="hero-title">
       <span className="hero-line-mask hero-line-one"><span className="hero-word hero-word-one">I turn ideas</span></span>
       <span className="hero-line-mask hero-line-two"><span className="hero-word hero-word-two">into <em>interfaces.</em></span></span>
