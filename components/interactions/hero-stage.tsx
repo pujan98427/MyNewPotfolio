@@ -131,7 +131,7 @@ export function HeroStage() {
             alt={`${PERSON_NAME} wearing sunglasses`}
             width={1440}
             height={500}
-            sizes="(max-width: 760px) 135vw, (max-height: 720px) min(60vw, 58rem), (max-height: 900px) min(66vw, 68rem), min(72vw, 82rem)"
+            sizes="(max-width: 820px) 100vw, (max-height: 720px) min(39vw, 31rem), (max-height: 900px) min(42vw, 36rem), min(44vw, 42rem)"
             preload
           />
         </div>
