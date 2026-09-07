@@ -57,6 +57,8 @@ result Blob -> one revocable object URL -> download
 
 The worker lifecycle must be owned by the compressor component, not the global layout or Lab index. The integration must expose cancellation and cleanup rather than leaving a singleton worker or virtual files behind.
 
+Worker messages must describe only coarse lifecycle changes: preparing, processing, complete, cancelled, or failed. The UI must not receive frame-by-frame progress events or update React state for every processed PDF object. If an approved runtime cannot expose measurable progress, the interface will continue to use honest indeterminate stage labels.
+
 ## Preset mapping to validate
 
 Ghostscript's `/screen`, `/ebook`, `/printer`, and `/prepress` presets are starting points, not user-facing guarantees. Before shipping, the three plain-language choices—Smallest file, Balanced, and Best quality—must be mapped using fixture-based output tests. The UI must continue to report measured sizes rather than predicted savings.
@@ -71,4 +73,3 @@ Until the gate above is passed, the compressor:
 - keeps the original when the output is not meaningfully smaller;
 - releases replaced and cleared result object URLs; and
 - accurately explains this limitation in the interface.
-

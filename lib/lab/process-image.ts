@@ -1,7 +1,5 @@
-export type ImageOperation="compress"|"resize"|"convert"|"crop";
-type ProcessImageOptions={file:File;mode:ImageOperation;width:number;height:number;quality:number;outputType:string;ratio:string;position:number;cropX?:number;cropY?:number;cropWidth?:number;cropHeight?:number;cropZoom?:number;cropRotation?:number};
-type ProcessedImage={blob:Blob;width:number;height:number};
-export type ImageFormatCandidate={type:string;blob:Blob;width:number;height:number};
+import type {ImageFormatCandidate,ImageWorkerRequest,ImageWorkerResponse,ProcessImageOptions,ProcessedImage} from "./image-worker-types";
+export type {ImageFormatCandidate,ImageOperation} from "./image-worker-types";
 type DecodedImage={source:ImageBitmap|HTMLImageElement;width:number;height:number;close:()=>void};
 
 async function canvasBlob(canvas:HTMLCanvasElement,type:string,quality:number){return await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,type,quality))}
@@ -21,7 +19,7 @@ async function decodeOrientedImage(file:File):Promise<DecodedImage>{
   }catch(error){URL.revokeObjectURL(url);throw error}
 }
 
-export async function compareImageFormats(file:File,quality:number,outputTypes:string[]):Promise<ImageFormatCandidate[]>{
+async function compareImageFormatsOnMainThread(file:File,quality:number,outputTypes:string[]):Promise<ImageFormatCandidate[]>{
   const decoded=await decodeOrientedImage(file);
   const canvases:HTMLCanvasElement[]=[];
   try{
@@ -42,7 +40,7 @@ export async function compareImageFormats(file:File,quality:number,outputTypes:s
   }finally{for(const canvas of canvases){canvas.width=0;canvas.height=0}decoded.close()}
 }
 
-export async function processImage({file,mode,width,height,quality,outputType,cropX=0,cropY=0,cropWidth=100,cropHeight=100,cropZoom=1,cropRotation=0}:ProcessImageOptions):Promise<ProcessedImage>{
+async function processImageOnMainThread({file,mode,width,height,quality,outputType,cropX=0,cropY=0,cropWidth=100,cropHeight=100,cropZoom=1,cropRotation=0}:ProcessImageOptions):Promise<ProcessedImage>{
   const decoded=await decodeOrientedImage(file);
   const htmlCanvases:HTMLCanvasElement[]=[],offscreenCanvases:OffscreenCanvas[]=[];
   try{
@@ -76,4 +74,30 @@ export async function processImage({file,mode,width,height,quality,outputType,cr
     const blob=await canvasBlob(canvas,outputType,quality);if(!blob)throw new Error("This browser could not create the selected format.");
     return {blob,width:outputWidth,height:outputHeight};
   }finally{for(const canvas of htmlCanvases){canvas.width=0;canvas.height=0}for(const canvas of offscreenCanvases){canvas.width=1;canvas.height=1}decoded.close()}
+}
+
+function supportsImageWorker(){return typeof Worker!=="undefined"&&typeof OffscreenCanvas!=="undefined"&&typeof createImageBitmap==="function"}
+
+function runWorker<T>(request:ImageWorkerRequest,read:(response:ImageWorkerResponse)=>T):Promise<T>{
+  return new Promise<T>((resolve,reject)=>{
+    const worker=new Worker(new URL("./image-processing.worker.ts",import.meta.url),{type:"module"});
+    const finish=()=>worker.terminate();
+    worker.onmessage=(event:MessageEvent<ImageWorkerResponse>)=>{const response=event.data;if(response.id!==request.id)return;finish();if(!response.ok){reject(new Error(response.message));return}try{resolve(read(response))}catch(error){reject(error)}};
+    worker.onerror=()=>{finish();reject(new Error("WORKER_UNAVAILABLE"))};
+    worker.postMessage(request);
+  });
+}
+
+function requestId(){return typeof crypto!=="undefined"&&"randomUUID" in crypto?crypto.randomUUID():`${Date.now()}-${Math.random()}`}
+
+export async function compareImageFormats(file:File,quality:number,outputTypes:string[]):Promise<ImageFormatCandidate[]>{
+  if(!supportsImageWorker())return compareImageFormatsOnMainThread(file,quality,outputTypes);
+  try{return await runWorker({id:requestId(),kind:"compare",file,quality,outputTypes},response=>response.ok&&response.kind==="compare"?response.result:[])}
+  catch(error){if(error instanceof Error&&error.message==="WORKER_UNAVAILABLE")return compareImageFormatsOnMainThread(file,quality,outputTypes);throw error}
+}
+
+export async function processImage(options:ProcessImageOptions):Promise<ProcessedImage>{
+  if(!supportsImageWorker())return processImageOnMainThread(options);
+  try{return await runWorker({id:requestId(),kind:"process",options},response=>{if(response.ok&&response.kind==="process")return response.result;throw new Error("The image could not be processed.")})}
+  catch(error){if(error instanceof Error&&error.message==="WORKER_UNAVAILABLE")return processImageOnMainThread(options);throw error}
 }

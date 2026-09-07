@@ -83,6 +83,7 @@ assert.match(readFileSync("app/lab/qr-code-generator/page.tsx","utf8"),/QR image
 assert.match(readFileSync("app/lab/qr-code-generator/page.tsx","utf8"),/does not create an editable destination, scan analytics or a tracking redirect/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/await import\("@\/lib\/lab\/process-image"\)/);
 const imageProcessor=readFileSync("lib/lab/process-image.ts","utf8");
+const imageWorker=readFileSync("lib/lab/image-processing.worker.ts","utf8");
 assert.match(imageProcessor,/createImageBitmap/);
 assert.match(imageProcessor,/imageOrientation:"from-image"/);
 assert.match(imageProcessor,/image\.naturalWidth/);
@@ -93,6 +94,13 @@ assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/reduce uninte
 assert.match(imageProcessor,/OffscreenCanvas/);
 assert.match(imageProcessor,/convertToBlob/);
 assert.match(imageProcessor,/canvas\.toBlob/);
+assert.match(imageProcessor,/new Worker\(new URL\("\.\/image-processing\.worker\.ts",import\.meta\.url\),\{type:"module"\}\)/);
+assert.match(imageProcessor,/worker\.terminate\(\)/);
+assert.match(imageWorker,/createImageBitmap/);
+assert.match(imageWorker,/OffscreenCanvas/);
+assert.match(imageWorker,/decoded\.close\(\)/);
+assert.doesNotMatch(imageWorker,/requestAnimationFrame|setInterval|setState/);
+assert.match(readFileSync("docs/PDF_COMPRESSION_WASM_EVALUATION.md","utf8"),/must not receive frame-by-frame progress events/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/addEventListener\("paste"/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/clipboardData/);
 for(const preset of ["Smaller file","Balanced","Keep quality"])assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),new RegExp(preset));
@@ -136,6 +144,9 @@ assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/onPointerMove
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/setPointerCapture/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/role="slider"/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/ArrowLeft/);
+assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/Horizontal position \(%\)/);
+assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/Vertical position \(%\)/);
+assert.match(readFileSync("components/lab/pdf-tool.tsx","utf8"),/moved to position/);
 for(const cropControl of ["Free","Square 1:1","Landscape 16:9","Portrait 4:5","Story 9:16","Selection width","Selection height","Zoom","Rotate 90°","Reset crop"])assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),new RegExp(cropControl));
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/not official social-platform requirements/);
 assert.match(readFileSync("lib/lab/process-image.ts","utf8"),/cropRotation\*Math\.PI\/180/);
