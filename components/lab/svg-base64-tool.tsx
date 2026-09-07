@@ -4,6 +4,7 @@ import { type DragEvent, type ClipboardEvent, useEffect, useMemo, useRef, useSta
 import Image from "next/image";
 import { ArrowDownToLine, Clipboard, FileUp, RefreshCw } from "lucide-react";
 import { decodeSvgBase64, encodeSvgBase64, encodeSvgUtf8DataUri, formatSvgMarkup, MAX_SVG_BYTES } from "@/lib/svg-base64";
+import {svgToolError} from "@/lib/lab/tool-errors";
 
 type CopyTarget="base64"|"data-uri"|"url-encoded"|"css-background"|"css-url"|"img-tag"|"svg";
 type OutputTab="base64"|"data-uri";
@@ -59,9 +60,9 @@ export function SvgBase64Tool(){
 
   useEffect(()=>{const pendingTimer=window.setTimeout(()=>setPreviewPending(Boolean(svg)),0);const previewTimer=window.setTimeout(()=>{try{const preview=svg?safePreviewDataUri(svg):null;setPreviewUri(preview?.uri??null);setPreviewRemoved(preview?.removed??0);}catch{setPreviewUri(null);setPreviewRemoved(0);}setPreviewPending(false);},180);return()=>{window.clearTimeout(pendingTimer);window.clearTimeout(previewTimer);};},[svg]);
 
-  function acceptSvg(source:string){try{const encoded=encodeSvgBase64(source);setSvg(source);setBase64(encoded);setError("");}catch(cause){setBase64("");setError(cause instanceof Error?cause.message:"The SVG could not be encoded.");}}
+  function acceptSvg(source:string){try{const encoded=encodeSvgBase64(source);setSvg(source);setBase64(encoded);setError("");}catch{setBase64("");setError(svgToolError("encode"));}}
   function encode(){acceptSvg(svg);}
-  function acceptBase64(source:string){try{const result=decodeSvgBase64(source);setDecodeInput(source);setSvg(result);setBase64(encodeSvgBase64(result));setError("");}catch(cause){setError(cause instanceof Error?cause.message:"The Base64 value could not be decoded.");}}
+  function acceptBase64(source:string){try{const result=decodeSvgBase64(source);setDecodeInput(source);setSvg(result);setBase64(encodeSvgBase64(result));setError("");}catch{setError(svgToolError("decode"));}}
   function decode(){acceptBase64(decodeInput);}
   async function copy(value:string,target:CopyTarget){await navigator.clipboard.writeText(value);setCopied(target);window.setTimeout(()=>setCopied(current=>current===target?null:current),1600);}
   function download(){const blob=new Blob([svg],{type:"image/svg+xml;charset=utf-8"}),url=URL.createObjectURL(blob),anchor=document.createElement("a");anchor.href=url;anchor.download="decoded-image.svg";anchor.click();URL.revokeObjectURL(url);}

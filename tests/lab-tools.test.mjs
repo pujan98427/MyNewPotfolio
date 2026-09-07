@@ -83,6 +83,7 @@ assert.match(readFileSync("app/lab/qr-code-generator/page.tsx","utf8"),/QR image
 assert.match(readFileSync("app/lab/qr-code-generator/page.tsx","utf8"),/does not create an editable destination, scan analytics or a tracking redirect/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/await import\("@\/lib\/lab\/process-image"\)/);
 const imageProcessor=readFileSync("lib/lab/process-image.ts","utf8");
+const toolErrors=readFileSync("lib/lab/tool-errors.ts","utf8");
 const imageWorker=readFileSync("lib/lab/image-processing.worker.ts","utf8");
 assert.match(imageProcessor,/createImageBitmap/);
 assert.match(imageProcessor,/imageOrientation:"from-image"/);
@@ -233,6 +234,11 @@ assert.doesNotMatch(readFileSync("components/lab/pdf-tool.tsx","utf8"),/from\s+[
 assert.match(readFileSync("components/lab/qr-code-tool.tsx","utf8"),/import\("qrcode"\)/);
 assert.doesNotMatch(readFileSync("components/lab/qr-code-tool.tsx","utf8"),/from\s+["']qrcode["']/);
 assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/await import\("@\/lib\/lab\/process-image"\)/);
+assert.match(readFileSync("components/lab/image-tool.tsx","utf8"),/setError\(imageToolError\(caught\)\)/);
+assert.match(toolErrors,/Your original file has not been changed/);
+assert.match(toolErrors,/Try JPG, PNG or WebP instead/);
+assert.doesNotMatch(readFileSync("components/lab/image-tool.tsx","utf8"),/setError\([^\n]*(?:caught|failure)\.(?:message|name)/);
+assert.doesNotMatch(readFileSync("components/lab/svg-base64-tool.tsx","utf8"),/setError\([^\n]*(?:cause|failure)\.(?:message|name)/);
 assert.doesNotMatch(productionDependencies,/ghostscript|gs-wasm|@jspawn\/jspawn|pdf-compressor-wasm/i);
 const cmpSource=readFileSync("lib/advertising/cmp.ts","utf8");
 assert.match(cmpSource,/certification:"google-certified-cmp"/);

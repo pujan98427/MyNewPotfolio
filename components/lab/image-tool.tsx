@@ -10,6 +10,7 @@ import {FileDropZone} from "@/components/lab/file-drop-zone";
 import {validateImageFile} from "@/lib/lab/file-validation";
 import {imageResizePresets} from "@/data/image-resize-presets";
 import {compressionBucket,trackProductEvent,type AnalyticsFileFormat} from "@/lib/analytics/product-events";
+import {imageToolError} from "@/lib/lab/tool-errors";
 
 export type ImageMode="compress"|"resize"|"convert"|"crop";
 type ImageToolName="image-compressor"|"image-resizer"|"image-format-converter"|"image-cropper";
@@ -159,7 +160,7 @@ export function ImageTool({mode}:{mode:ImageMode}){
       else if(mode==="resize")trackProductEvent("image_resized",formats);
       else if(mode==="convert")trackProductEvent("image_converted",formats);
       else trackProductEvent("image_cropped",formats);
-    }catch(caught){setError(caught instanceof Error?caught.message:"The image could not be processed.")}finally{setBusy(false)}
+    }catch(caught){setError(imageToolError(caught))}finally{setBusy(false)}
   };
   const resetCrop=()=>{setRatio("free");setCropX(50);setCropY(50);setCropScale(85);setFreeCropWidth(75);setFreeCropHeight(75);setCropZoom(1);setCropRotation(0)};
   const clear=()=>{if(source)URL.revokeObjectURL(source);if(result)URL.revokeObjectURL(result.url);setFile(null);setSource(null);setResult(null);setFormatComparisons([]);setSourceWidth(0);setSourceHeight(0);setKeepProportions(true);setResizeMode("pixels");setResizePercentage(50);setPreventUpscaling(true);setConvertIntent("website");setFormat("image/webp");resetCrop();setQuality(82);setCompressionPreset("balanced");setError("")};
