@@ -31,5 +31,5 @@ assert.match(readFileSync("components/lab/pdf-tool.tsx","utf8"),/URL\.revokeObje
 const validation=readFileSync("lib/lab/file-validation.ts","utf8"),worker=readFileSync("lib/lab/image-processing.worker.ts","utf8"),tool=readFileSync("components/lab/image-tool.tsx","utf8");
 for(const signature of ["PNG","RIFF","WEBP","0xff","image/jpeg","image/png","image/webp"])assert.match(validation,new RegExp(signature.replace("/","\\/")));
 assert.match(worker,/imageOrientation:"from-image"/);assert.match(worker,/decoded\.close\(\)/);assert.match(worker,/canvas\.width=1/);
-assert.match(tool,/candidate\.size>=file\.size/);assert.match(tool,/25\*1024\*1024/);
+assert.match(tool,/candidate\.size>=file\.size/);assert.match(validation,/25\*1024\*1024/);
 console.log("✓ QR, image, PDF and random-picker core behavior passed.");
