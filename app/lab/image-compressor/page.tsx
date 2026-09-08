@@ -1,3 +1,3 @@
 import {ImageTool} from "@/components/lab/image-tool";import {ToolPageLayout} from "@/components/lab/tool-page-layout";import {createToolPageMetadata} from "@/lib/seo/metadata";
 export const metadata=createToolPageMetadata({title:"Free Image Compressor",description:"Compress JPEG, PNG and WebP images, compare the real file sizes and download the smaller result. Processing stays in your browser.",path:"/lab/image-compressor"});
-export default function Page(){return <ToolPageLayout title="Image Compressor" description="Make an image smaller, compare it with the original and download the better file." path="/lab/image-compressor"><ImageTool mode="compress"/></ToolPageLayout>}
+export default function Page(){return <ToolPageLayout title="Image Compressor" description="Make an image smaller without guessing technical settings." path="/lab/image-compressor"><ImageTool mode="compress"/></ToolPageLayout>}
