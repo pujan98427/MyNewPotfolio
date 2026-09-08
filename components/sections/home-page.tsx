@@ -2,30 +2,68 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { projects } from "@/data/projects";
-import { education,experience } from "@/data/experience";
+import { education, experience } from "@/data/experience";
 import { skills } from "@/data/skills";
 import { labTools } from "@/data/lab-tools";
 import { HeroStage } from "@/components/interactions/hero-stage";
-import { RevealLine,RevealText,SectionIntro } from "@/components/interactions/reveal";
+import { RevealLine, RevealText, SectionIntro } from "@/components/interactions/reveal";
 import { ProjectStory } from "@/components/work/project-story";
 import { ExperienceList } from "@/components/sections/experience-list";
 import { ContactPanelButton } from "@/components/contact/contact-panel-button";
 import { site } from "@/lib/site";
 
-export function HomePage(){const featuredProjects=projects.slice(0,4),otherContributions=projects.slice(4).filter(project=>project.ownership==="employer"),featuredToolSlugs=new Set(["web-doctor","svg-base64-converter"]),featuredLabTools=labTools.filter(tool=>featuredToolSlugs.has(tool.slug)),otherLabTools=labTools.filter(tool=>!featuredToolSlugs.has(tool.slug)&&tool.documentationSlug).slice(0,6);return <main id="main">
-  <HeroStage />
+export function HomePage() {
+  const featuredProjects=projects.slice(0,4);
+  const otherContributions=projects.slice(4).filter(project=>project.ownership==="employer");
+  const featuredToolSlugs=new Set(["web-doctor","svg-base64-converter"]);
+  const featuredLabTools=labTools.filter((tool) => featuredToolSlugs.has(tool.slug));
+  const otherLabTools=labTools.filter((tool) => !featuredToolSlugs.has(tool.slug) && tool.documentationSlug).slice(0,6);
 
-  <section className="work story-section" id="selected-work"><SectionIntro className="section-head story-heading"><p className="eyebrow">01 / Selected work</p><h2><RevealText>Frontend craft,<br />shown honestly.</RevealText></h2><p>Selected employment contributions, presented without product case studies, business claims or implied ownership.</p><RevealLine /></SectionIntro><ProjectStory projects={featuredProjects} /><aside className="other-contributions" aria-labelledby="other-contributions-heading"><header><p className="eyebrow">Employment contributions</p><h3 id="other-contributions-heading">Other contributions</h3><p>Additional frontend and WordPress work completed as part of an employment team.</p></header><ul>{otherContributions.map(project=><li key={project.slug}><a href={project.url} target="_blank" rel="nofollow noopener noreferrer" aria-label={`Visit the public ${project.title} website in a new tab`}><span>{project.title}</span><ArrowUpRight aria-hidden="true" /></a></li>)}</ul></aside></section>
+  return <main id="main">
+    <HeroStage />
 
-  <section className="home-lab section" id="lab" data-section="02" aria-labelledby="home-lab-heading"><header className="home-overview-head"><p className="eyebrow">02 / The Lab</p><h2 id="home-lab-heading">Useful things<br />for the web.</h2><p>Free, privacy-conscious utilities for developers, designers and website owners—built to solve a real task without an account.</p><nav className="home-lab-shortcuts" aria-label="Featured Lab destinations"><Link href="/lab">All Lab tools</Link><Link href="/lab/web-doctor">Web Doctor</Link><Link href="/lab/svg-base64-converter">SVG converter</Link></nav></header><div className="home-lab-featured">{featuredLabTools.map(tool=><article key={tool.slug}><span>{tool.number} / {tool.category}</span><h3>{tool.title}</h3><p>{tool.description}</p><nav aria-label={`${tool.title} actions`}><Link href={`/lab/${tool.slug}`} aria-label={`Open ${tool.title}`}>Open tool <ArrowUpRight aria-hidden="true" /></Link><Link href={`/writing/${tool.documentationSlug}`} aria-label={`Read documentation for ${tool.title}`}>Read documentation <ArrowUpRight aria-hidden="true" /></Link></nav></article>)}</div><div className="home-lab-directory"><p className="eyebrow">More tools</p><div>{otherLabTools.map(tool=><article key={tool.slug}><span>{tool.number}</span><div><h3>{tool.title}</h3><p>{tool.description}</p><nav aria-label={`${tool.title} actions`}><Link href={`/lab/${tool.slug}`} aria-label={`Open ${tool.title}`}>Open tool <ArrowUpRight aria-hidden="true" /></Link><Link href={`/writing/${tool.documentationSlug}`} aria-label={`Read documentation for ${tool.title}`}>Read documentation <ArrowUpRight aria-hidden="true" /></Link></nav></div></article>)}</div></div></section>
+    <section className="work story-section" id="selected-work">
+      <SectionIntro className="section-head story-heading">
+        <p className="eyebrow">01 / Selected work</p>
+        <h2><RevealText>Frontend craft,<br />shown honestly.</RevealText></h2>
+        <p>Selected employment contributions, presented without product case studies, business claims or implied ownership.</p>
+        <RevealLine />
+      </SectionIntro>
+      <ProjectStory projects={featuredProjects} />
+      <aside className="other-contributions" aria-labelledby="other-contributions-heading">
+        <header><p className="eyebrow">Employment contributions</p><h3 id="other-contributions-heading">Other contributions</h3><p>Additional frontend and WordPress work completed as part of an employment team.</p></header>
+        <ul>{otherContributions.map(project=><li key={project.slug}><a href={project.url} target="_blank" rel="nofollow noopener noreferrer" aria-label={`Visit the public ${project.title} website in a new tab`}><span>{project.title}</span><ArrowUpRight aria-hidden="true" /></a></li>)}</ul>
+      </aside>
+    </section>
 
-  <section className="home-expertise section" id="skills" data-section="03" aria-labelledby="home-expertise-heading"><header className="home-overview-head"><p className="eyebrow">03 / Skills &amp; capability</p><h2 id="home-expertise-heading">What I work<br />with.</h2><p>A practical toolkit spanning interface engineering, content systems, design collaboration and everyday workplace software. No percentage scores—just capabilities demonstrated by the work and tools on this site.</p></header><div className="capability-list">{Object.entries(skills).map(([group,items],groupIndex)=><article key={group}><span>{String(groupIndex+1).padStart(2,"0")}</span><h3>{group}</h3><ol>{items.map((item,itemIndex)=><li key={item} data-skill={item}><span>{item}</span><b>{String(itemIndex+1).padStart(2,"0")}</b></li>)}</ol></article>)}</div></section>
+    <section className="home-expertise section" id="skills" data-section="02" aria-labelledby="home-expertise-heading">
+      <header className="home-overview-head"><p className="eyebrow">02 / Skills &amp; capability</p><h2 id="home-expertise-heading">What I work<br />with.</h2><p>A practical toolkit spanning interface engineering, content systems, design collaboration and everyday workplace software. No percentage scores—just capabilities demonstrated by the work and tools on this site.</p></header>
+      <div className="capability-list">{Object.entries(skills).map(([group,items],groupIndex)=><article key={group}><span>{String(groupIndex+1).padStart(2,"0")}</span><h3>{group}</h3><ol>{items.map((item,itemIndex)=><li key={item} data-skill={item}><span>{item}</span><b>{String(itemIndex+1).padStart(2,"0")}</b></li>)}</ol></article>)}</div>
+    </section>
 
-  <section className="home-experience section" id="experience" data-section="04" aria-labelledby="home-experience-heading"><header className="home-overview-head"><p className="eyebrow">04 / Experience</p><h2 id="home-experience-heading">Where I have<br />worked.</h2><p>{experience.length} roles across frontend development, UI/UX design and WordPress delivery from 2019 to August 2025.</p></header><ExperienceList /></section>
+    <section className="home-experience section" id="experience" data-section="03" aria-labelledby="home-experience-heading">
+      <header className="home-overview-head"><p className="eyebrow">03 / Experience</p><h2 id="home-experience-heading">Where I have<br />worked.</h2><p>{experience.length} roles across frontend development, UI/UX design and WordPress delivery from 2019 to August 2025.</p></header>
+      <ExperienceList />
+    </section>
 
-  <section className="home-education section" id="education" data-section="05" aria-labelledby="home-education-heading"><header className="home-overview-head"><p className="eyebrow">05 / Education</p><h2 id="home-education-heading">Education,<br />clearly.</h2><p>Formal computing foundations followed by postgraduate study in web development in Scotland. Dates appear only where they exist in the current record.</p></header><ol>{education.map((item,index)=><li key={item.course} data-featured={index===0||undefined}><span>{String(index+1).padStart(2,"0")}</span><div><h3>{item.course}</h3><p>{item.school}</p></div><p>{item.place}{item.year&&<> · <time>{item.year}</time></>}</p></li>)}</ol></section>
+    <section className="home-education section" id="education" data-section="04" aria-labelledby="home-education-heading">
+      <header className="home-overview-head"><p className="eyebrow">04 / Education</p><h2 id="home-education-heading">Education,<br />clearly.</h2><p>Formal computing foundations followed by postgraduate study in web development in Scotland. Dates appear only where they exist in the current record.</p></header>
+      <ol>{education.map((item, index) => <li key={item.course} data-featured={index === 0 || undefined}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{item.course}</h3><p>{item.school}</p></div><p>{item.place}{item.year && <> · <time>{item.year}</time></>}</p></li>)}</ol>
+    </section>
 
-  <section className="about section home-about" id="about" data-section="06"><div className="about-grid"><div className="portrait"><Image src="/pujan-chapagain-portrait.png" alt="Pujan Chapagain wearing a suit and sunglasses" width={660} height={499} sizes="(max-width: 760px) 100vw, 40vw" /></div><div><p className="eyebrow">06 / About</p><h2>Curious by nature.<br /><em>Exacting</em> by craft.</h2><p className="standfirst">I’m Pujan Chapagain, a frontend developer based in Glasgow. I combine user-centred thinking, streamlined workflows and precise implementation to build thoughtful web experiences.</p></div></div></section>
+    <section className="about section home-about" id="about" data-section="05">
+      <div className="about-grid"><div className="portrait"><Image src="/pujan-chapagain-portrait.png" alt="Pujan Chapagain wearing a suit and sunglasses" width={660} height={499} sizes="(max-width: 760px) 100vw, 40vw" /></div><div><p className="eyebrow">05 / About</p><h2>Curious by nature.<br /><em>Exacting</em> by craft.</h2><p className="standfirst">I’m Pujan Chapagain, a frontend developer based in Glasgow. I combine user-centred thinking, streamlined workflows and precise implementation to build thoughtful web experiences.</p></div></div>
+    </section>
 
-  <section className="home-contact section" id="contact" data-section="07" aria-labelledby="home-contact-heading"><p className="eyebrow">07 / Contact</p><div className="home-contact-content"><h2 id="home-contact-heading">Have something<br />interesting in mind?</h2><p>For a website project, frontend role or thoughtful collaboration, send a short note. It goes directly to my inbox, and I reply to the email you provide.</p><ContactPanelButton /><dl className="home-contact-details"><div><dt>Email</dt><dd><a href={`mailto:${site.email}`}>{site.email}</a></dd></div><div><dt>Location</dt><dd>{site.location}</dd></div></dl><nav className="home-contact-socials" aria-label="Professional profiles">{site.socialLinks.map(link=><a href={link.href} target="_blank" rel="me noopener noreferrer" key={link.href} aria-label={`Open Pujan’s ${link.label} profile in a new tab`}>{link.label}<ArrowUpRight aria-hidden="true" /></a>)}</nav></div></section>
-</main>;}
+    <section className="home-contact section" id="contact" data-section="06" aria-labelledby="home-contact-heading">
+      <p className="eyebrow">06 / Contact</p>
+      <div className="home-contact-content"><h2 id="home-contact-heading">Have something<br />interesting in mind?</h2><p>For a website project, frontend role or thoughtful collaboration, send a short note. It goes directly to my inbox, and I reply to the email you provide.</p><ContactPanelButton /><dl className="home-contact-details"><div><dt>Email</dt><dd><a href={`mailto:${site.email}`}>{site.email}</a></dd></div><div><dt>Location</dt><dd>{site.location}</dd></div></dl><nav className="home-contact-socials" aria-label="Professional profiles">{site.socialLinks.map((link) => <a href={link.href} target="_blank" rel="me noopener noreferrer" key={link.href} aria-label={`Open Pujan’s ${link.label} profile in a new tab`}>{link.label}<ArrowUpRight aria-hidden="true" /></a>)}</nav></div>
+    </section>
+
+    <section className="home-lab section" id="lab" data-section="07" aria-labelledby="home-lab-heading">
+      <header className="home-overview-head"><p className="eyebrow">07 / The Lab</p><h2 id="home-lab-heading">The Lab.</h2><p>Small tools I build for everyday web work. No account and no unnecessary steps.</p><nav className="home-lab-shortcuts" aria-label="Featured Lab destinations"><Link href="/lab">All Lab tools</Link><Link href="/lab/web-doctor">Web Doctor</Link><Link href="/lab/svg-base64-converter">SVG converter</Link></nav></header>
+      <div className="home-lab-featured">{featuredLabTools.map(tool=><article key={tool.slug}><span>{tool.number} / {tool.category}</span><h3>{tool.title}</h3><p>{tool.description}</p><nav aria-label={`${tool.title} actions`}><Link href={`/lab/${tool.slug}`} aria-label={`Open ${tool.title}`}>Open tool <ArrowUpRight aria-hidden="true" /></Link><Link href={`/writing/${tool.documentationSlug}`} aria-label={`Read documentation for ${tool.title}`}>Read documentation <ArrowUpRight aria-hidden="true" /></Link></nav></article>)}</div>
+      <div className="home-lab-directory"><p className="eyebrow">More tools</p><div>{otherLabTools.map(tool=><article key={tool.slug}><span>{tool.number}</span><div><h3>{tool.title}</h3><p>{tool.description}</p><nav aria-label={`${tool.title} actions`}><Link href={`/lab/${tool.slug}`} aria-label={`Open ${tool.title}`}>Open tool <ArrowUpRight aria-hidden="true" /></Link><Link href={`/writing/${tool.documentationSlug}`} aria-label={`Read documentation for ${tool.title}`}>Read documentation <ArrowUpRight aria-hidden="true" /></Link></nav></div></article>)}</div></div>
+    </section>
+  </main>;
+}
