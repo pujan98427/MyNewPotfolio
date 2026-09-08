@@ -26,11 +26,11 @@ export function ToolPageLayout({title,description,path,children,variant="editori
   return <main id="main"><section className={`tool-page tool-page-${variant} tool-page-${tool.slug}${immersive?" tool-page-immersive":""}`}>
     <ToolOpenedEvent toolName={tool.slug} />
     <Breadcrumbs items={[{label:"Lab",href:"/lab"},{label:title,href:path}]} />
-    {!immersive&&<header><p className="eyebrow">Frontend lab</p><h1>{title}</h1><p>{description}</p></header>}
-    {immersive?children:<section className="tool-workspace" id={`${tool.slug}-workspace`} aria-labelledby={`${tool.slug}-workspace-heading`}><div className="tool-stage-heading"><h2 id={`${tool.slug}-workspace-heading`}>Tool</h2></div><ol className="tool-flow" aria-label="Tool workflow"><li><span>01</span>Input</li><li><span>02</span>Process</li><li><span>03</span>Result</li><li><span>04</span>Continue</li></ol>{children}</section>}
+    {!immersive&&<header className="tool-product-intro"><h1>{title}</h1><p>{description}</p></header>}
+    {immersive?children:<section className="tool-workspace" id={`${tool.slug}-workspace`} aria-label={`${title} workspace`}>{children}</section>}
     {!immersive&&<section className="tool-next-actions" aria-labelledby={`${tool.slug}-next-actions`}>
       <p className="eyebrow">Next useful actions</p>
-      <h2 id={`${tool.slug}-next-actions`}>Review the result or choose the next task.</h2>
+      <h2 id={`${tool.slug}-next-actions`}>Continue with another tool.</h2>
       <div>
         {tool.documentationSlug&&<Link href={`/writing/${tool.documentationSlug}`} aria-label={`Read documentation for ${tool.title}`}>Read the documentation <ArrowUpRight aria-hidden="true" /></Link>}
         <Link href="/lab">Find another tool <ArrowUpRight aria-hidden="true" /></Link>
