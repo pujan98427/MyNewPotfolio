@@ -5,6 +5,9 @@ import {buildQrPayload,qrContrastRatio} from "../lib/lab/qr-core.ts";
 import {parsePickerChoices,secureShuffle,unbiasedRandomIndex} from "../lib/lab/random-core.ts";
 
 assert.equal(buildQrPayload({kind:"website",value:"example.com"}),"https://example.com");
+assert.equal(buildQrPayload({kind:"social",value:"instagram.com/pujan"}),"https://instagram.com/pujan");
+assert.equal(buildQrPayload({kind:"social",socialService:"instagram",value:"pujanchapagain7"}),"https://instagram.com/pujanchapagain7");
+assert.equal(buildQrPayload({kind:"social",socialService:"linkedin",value:"https://linkedin.com/company/example"}),"https://linkedin.com/company/example");
 assert.equal(buildQrPayload({kind:"wifi",wifiName:"Home;WiFi",wifiPassword:"p:a",wifiSecurity:"WPA",wifiHidden:true}),"WIFI:T:WPA;S:Home\\;WiFi;P:p\\:a;H:true;;");
 assert.equal(buildQrPayload({kind:"email",recipient:"a@example.com",subject:"Hello world",message:"One & two"}),"mailto:a@example.com?subject=Hello%20world&body=One%20%26%20two");
 assert.equal(buildQrPayload({kind:"text",value:" hello "}),"hello");

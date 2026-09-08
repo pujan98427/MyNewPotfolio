@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { AtSign, Camera, Link as LinkIcon, MessageCircle, MoreHorizontal, Music2, Pin, Play, Send } from "lucide-react";
 import styles from "./simple-tools.module.css";
 import { trackProductEvent } from "@/lib/analytics/product-events";
 import { useMobileResultScroll } from "@/lib/lab/use-mobile-result-scroll";
-import { buildQrPayload, qrContrastRatio as contrastRatio, type QrKind } from "@/lib/lab/qr-core";
+import { buildQrPayload, qrContrastRatio as contrastRatio, socialProfilePrefix, type QrKind, type SocialService } from "@/lib/lab/qr-core";
 
 type ErrorCorrection = "L" | "M" | "Q" | "H";
-type SocialService = "instagram" | "facebook" | "linkedin" | "youtube" | "tiktok" | "x" | "whatsapp" | "github" | "pinterest" | "threads" | "custom";
 
 const kindLabels: Record<QrKind, string> = { website: "Link", social: "Social", wifi: "Wi-Fi", text: "Text", email: "Email", phone: "Phone", sms: "Message", whatsapp: "WhatsApp", contact: "Contact" };
 const contentTypes: readonly { kind: Exclude<QrKind, "whatsapp">; label: string }[] = [
@@ -17,11 +17,31 @@ const contentTypes: readonly { kind: Exclude<QrKind, "whatsapp">; label: string 
 const socialServices: readonly { value: SocialService; label: string; placeholder: string }[] = [
   { value: "instagram", label: "Instagram", placeholder: "instagram.com/your-name" }, { value: "facebook", label: "Facebook", placeholder: "facebook.com/your-page" }, { value: "linkedin", label: "LinkedIn", placeholder: "linkedin.com/in/your-name" }, { value: "youtube", label: "YouTube", placeholder: "youtube.com/@your-channel" }, { value: "tiktok", label: "TikTok", placeholder: "tiktok.com/@your-name" }, { value: "x", label: "X", placeholder: "x.com/your-name" }, { value: "whatsapp", label: "WhatsApp", placeholder: "wa.me/447700900000" }, { value: "github", label: "GitHub", placeholder: "github.com/your-name" }, { value: "pinterest", label: "Pinterest", placeholder: "pinterest.com/your-name" }, { value: "threads", label: "Threads", placeholder: "threads.net/@your-name" }, { value: "custom", label: "Custom link", placeholder: "example.com/your-page" },
 ];
+const primarySocialServices: readonly SocialService[] = ["instagram", "facebook", "linkedin", "youtube", "tiktok", "whatsapp"];
+
+function SocialServiceIcon({ service }: { service: SocialService }) {
+  if (service === "instagram") return <Camera aria-hidden="true" />;
+  if (service === "youtube") return <Play aria-hidden="true" />;
+  if (service === "tiktok") return <Music2 aria-hidden="true" />;
+  if (service === "whatsapp") return <Send aria-hidden="true" />;
+  if (service === "pinterest") return <Pin aria-hidden="true" />;
+  if (service === "custom") return <LinkIcon aria-hidden="true" />;
+  if (service === "facebook" || service === "threads") return <MessageCircle aria-hidden="true" />;
+  return <AtSign aria-hidden="true" />;
+}
+
+function socialScanInstruction(service: SocialService, label: string) {
+  if (service === "instagram") return "Scan to open Instagram.";
+  if (service === "facebook") return "Scan to view the Facebook page.";
+  if (service === "linkedin") return "Scan to open LinkedIn.";
+  return `Scan to visit this ${label.toLowerCase()} profile.`;
+}
 
 export function QrCodeTool() {
   const resultRef = useRef<HTMLElement>(null);
   const [kind, setKind] = useState<Exclude<QrKind, "whatsapp">>("website");
   const [socialService, setSocialService] = useState<SocialService>("instagram");
+  const [showMoreSocialServices, setShowMoreSocialServices] = useState(false);
   const [value, setValue] = useState("");
   const [recipient, setRecipient] = useState("");
   const [message, setMessage] = useState("");
@@ -50,8 +70,9 @@ export function QrCodeTool() {
   useMobileResultScroll(Boolean(dataUrl), resultRef);
 
   const resetResult = () => { setDataUrl(""); setSvg(""); setEncodedValue(""); setError(""); setScanWarning(""); };
-  const selectKind = (nextKind: Exclude<QrKind, "whatsapp">) => { setKind(nextKind); resetResult(); };
-  const payload = () => buildQrPayload({ kind, value, recipient, message, subject, wifiName, wifiPassword, wifiSecurity, wifiHidden, contactName, contactEmail, contactPhone });
+  const selectKind = (nextKind: Exclude<QrKind, "whatsapp">) => { setKind(nextKind); if (nextKind === "social") setValue("pujanchapagain7"); resetResult(); };
+  const selectSocialService = (nextService: SocialService) => { setSocialService(nextService); setValue(nextService === "instagram" ? "pujanchapagain7" : ""); setShowMoreSocialServices(!primarySocialServices.includes(nextService)); resetResult(); };
+  const payload = () => buildQrPayload({ kind, value, socialService, recipient, message, subject, wifiName, wifiPassword, wifiSecurity, wifiHidden, contactName, contactEmail, contactPhone });
   const generate = async () => {
     const content = payload();
     if (!content) { setError(kind === "wifi" ? "Enter the Wi-Fi network name." : kind === "contact" ? "Enter at least one contact detail." : ["email", "phone", "sms"].includes(kind) ? "Enter the recipient details." : kind === "social" ? `Enter the ${socialPreset.label} link.` : "Enter something for the QR code."); return; }
@@ -76,7 +97,7 @@ export function QrCodeTool() {
         <h2>What should the code contain?</h2>
         <fieldset className={styles.typeNavigation}><legend>Content type</legend><div>{contentTypes.map((type) => <button key={type.kind} type="button" aria-pressed={kind === type.kind} onClick={() => selectKind(type.kind)}>{type.label}</button>)}</div></fieldset>
         {kind === "website" && <div className={styles.field}><label htmlFor="qr-website">Website address</label><input id="qr-website" type="url" value={value} onChange={(event) => setValue(event.target.value)} placeholder="example.com" /></div>}
-        {kind === "social" && <><div className={styles.field}><label htmlFor="qr-social-service">Social profile or page</label><select id="qr-social-service" value={socialService} onChange={(event) => { setSocialService(event.target.value as SocialService); setValue(""); resetResult(); }}>{socialServices.map((service) => <option key={service.value} value={service.value}>{service.label}</option>)}</select></div><div className={styles.field}><label htmlFor="qr-social-link">{socialPreset.label} link</label><input id="qr-social-link" type="url" value={value} onChange={(event) => setValue(event.target.value)} placeholder={socialPreset.placeholder} /><p className={styles.fieldHint}>This QR code stores the link only. It does not connect to {socialPreset.label}.</p></div></>}
+        {kind === "social" && <><fieldset className={styles.socialServices}><legend>Where should your QR open?</legend><div>{socialServices.filter((service) => primarySocialServices.includes(service.value) || (showMoreSocialServices && !primarySocialServices.includes(service.value))).map((service) => <button key={service.value} type="button" aria-pressed={socialService === service.value} onClick={() => selectSocialService(service.value)}><SocialServiceIcon service={service.value} /><span>{service.label}</span></button>)}<button type="button" aria-expanded={showMoreSocialServices} onClick={() => setShowMoreSocialServices((shown) => !shown)}><MoreHorizontal aria-hidden="true" /><span>{showMoreSocialServices ? "Less" : "More"}</span></button></div></fieldset><div className={styles.field}><label htmlFor="qr-social-link">{socialPreset.label} profile</label><div className={styles.profileInput}><span>{socialProfilePrefix(socialService)}</span><input id="qr-social-link" type="text" inputMode="url" value={value} onChange={(event) => setValue(event.target.value)} placeholder={socialPreset.placeholder} aria-describedby="qr-social-link-hint" /></div><p id="qr-social-link-hint" className={styles.fieldHint}>Enter a username, or paste the full profile link if its format is different.</p></div></>}
         {kind === "text" && <div className={styles.field}><label htmlFor="qr-text">Text</label><textarea id="qr-text" value={value} onChange={(event) => setValue(event.target.value)} maxLength={2000} /></div>}
         {kind === "wifi" && <><div className={styles.field}><label htmlFor="wifi-name">Wi-Fi name</label><input id="wifi-name" value={wifiName} onChange={(event) => setWifiName(event.target.value)} placeholder="Home WiFi" autoComplete="off" /></div><div className={styles.field}><label htmlFor="wifi-password">Password</label><input id="wifi-password" type="password" value={wifiPassword} onChange={(event) => setWifiPassword(event.target.value)} disabled={wifiSecurity === "nopass"} autoComplete="new-password" /></div><div className={styles.field}><label htmlFor="wifi-security">Security</label><select id="wifi-security" value={wifiSecurity} onChange={(event) => setWifiSecurity(event.target.value)}><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">No password</option></select></div><label className={styles.check}><input type="checkbox" checked={wifiHidden} onChange={(event) => setWifiHidden(event.target.checked)} /> Hidden network</label></>}
         {kind === "email" && <>{recipientField("qr-email", "Email address")}<div className={styles.field}><label htmlFor="qr-subject">Subject (optional)</label><input id="qr-subject" value={subject} onChange={(event) => setSubject(event.target.value)} /></div><div className={styles.field}><label htmlFor="qr-email-message">Message (optional)</label><textarea id="qr-email-message" value={message} onChange={(event) => setMessage(event.target.value)} /></div></>}
@@ -89,7 +110,7 @@ export function QrCodeTool() {
       </section>
       <section ref={resultRef} className={styles.panel}>
         <h2>QR code</h2>
-        {dataUrl ? <><div className={styles.resultHero} role="status"><span className={styles.resultLabel}>{scanWarning ? "Check colours" : "Ready"}</span><strong className={styles.resultName}>{scanWarning ? "Review this QR code." : "Your QR code is ready."}</strong><span className={styles.resultMetric}>{size} × {size} px</span><p>{scanWarning || "Generated successfully with a clear quiet zone and practical contrast."}</p></div><div className={styles.preview}><Image unoptimized className={styles.qr} src={dataUrl} width={size} height={size} alt={`Generated ${kindLabels[kind]} QR code`} /></div><dl className={styles.stats}><div><dt>Type</dt><dd>{kindLabels[kind]}</dd></div>{kind === "social" && <div><dt>Link</dt><dd>{socialPreset.label}</dd></div>}{kind === "wifi" && <div><dt>Network</dt><dd>{wifiName}</dd></div>}<div><dt>Quiet zone</dt><dd>{margin} modules</dd></div><div><dt>Contrast</dt><dd>{contrastRatio(foreground, background).toFixed(1)}:1</dd></div></dl><div className={styles.encodedValue}><span>Encoded text</span><code>{encodedValue}</code><button type="button" className={styles.button} data-quiet onClick={() => void copyEncoded()}>{copied ? "Copied" : "Copy encoded text"}</button></div><div className={styles.actions}><button type="button" className={styles.button} aria-label="Download QR code as PNG" disabled={Boolean(scanWarning)} onClick={() => { download(dataUrl, "qr-code.png"); trackProductEvent("qr_downloaded", { qr_type: kind, output_format: "png" }); }}>Download</button><button type="button" className={styles.button} data-quiet disabled={Boolean(scanWarning)} onClick={downloadSvg}>Download SVG</button><button type="button" className={styles.button} data-quiet disabled={Boolean(scanWarning)} onClick={() => window.print()}>Print</button></div>{scanWarning && <p className={styles.status} data-error="true" role="alert">{scanWarning}</p>}<p>Test the code with your phone before publishing it.</p></> : <p>Your QR code will appear here.</p>}
+        {dataUrl ? <><div className={styles.resultHero} role="status"><span className={styles.resultLabel}>{scanWarning ? "Check colours" : "Ready"}</span><strong className={styles.resultName}>{scanWarning ? "Review this QR code." : "Your QR code is ready."}</strong><span className={styles.resultMetric}>{size} × {size} px</span><p>{scanWarning || (kind === "social" ? socialScanInstruction(socialService, socialPreset.label) : "Generated successfully with a clear quiet zone and practical contrast.")}</p></div><div className={styles.preview}><Image unoptimized className={styles.qr} src={dataUrl} width={size} height={size} alt={`Generated ${kindLabels[kind]} QR code`} /></div><dl className={styles.stats}><div><dt>Type</dt><dd>{kindLabels[kind]}</dd></div>{kind === "social" && <div><dt>Link</dt><dd>{socialPreset.label}</dd></div>}{kind === "wifi" && <div><dt>Network</dt><dd>{wifiName}</dd></div>}<div><dt>Quiet zone</dt><dd>{margin} modules</dd></div><div><dt>Contrast</dt><dd>{contrastRatio(foreground, background).toFixed(1)}:1</dd></div></dl><div className={styles.encodedValue}><span>Encoded text</span><code>{encodedValue}</code><button type="button" className={styles.button} data-quiet onClick={() => void copyEncoded()}>{copied ? "Copied" : "Copy encoded text"}</button></div><div className={styles.actions}><button type="button" className={styles.button} aria-label="Download QR code as PNG" disabled={Boolean(scanWarning)} onClick={() => { download(dataUrl, "qr-code.png"); trackProductEvent("qr_downloaded", { qr_type: kind, output_format: "png" }); }}>Download</button><button type="button" className={styles.button} data-quiet disabled={Boolean(scanWarning)} onClick={downloadSvg}>Download SVG</button><button type="button" className={styles.button} data-quiet disabled={Boolean(scanWarning)} onClick={() => window.print()}>Print</button></div>{scanWarning && <p className={styles.status} data-error="true" role="alert">{scanWarning}</p>}<p>Test the code with your phone before publishing it.</p></> : <p>Your QR code will appear here.</p>}
       </section>
     </div>
   </div>;

@@ -20,8 +20,8 @@ export type ProductEventMap={
   contact_success:Record<string,never>;
   contact_error:Record<string,never>;
   tool_opened:{tool_name:string};
-  qr_generated:{qr_type:"website"|"text"|"wifi"|"email"|"phone"|"sms"|"whatsapp"|"contact"};
-  qr_downloaded:{qr_type:"website"|"text"|"wifi"|"email"|"phone"|"sms"|"whatsapp"|"contact";output_format:"png"|"svg"};
+  qr_generated:{qr_type:"website"|"social"|"text"|"wifi"|"email"|"phone"|"sms"|"whatsapp"|"contact"};
+  qr_downloaded:{qr_type:"website"|"social"|"text"|"wifi"|"email"|"phone"|"sms"|"whatsapp"|"contact";output_format:"png"|"svg"};
   image_compressed:{input_format:AnalyticsFileFormat;output_format:AnalyticsFileFormat;compression_bucket:CompressionBucket};
   image_resized:{input_format:AnalyticsFileFormat;output_format:AnalyticsFileFormat};
   image_converted:{input_format:AnalyticsFileFormat;output_format:AnalyticsFileFormat};
