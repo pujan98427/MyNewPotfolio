@@ -32,8 +32,8 @@ export function HeroStage() {
         stage.style.setProperty("--pointer-y", y.toFixed(3));
         stage.style.setProperty("--hero-pointer-x", `${(x * 3).toFixed(2)}px`);
         stage.style.setProperty("--hero-pointer-y", `${(y * 3).toFixed(2)}px`);
-        stage.style.setProperty("--hero-rotate-x", `${(y * -1).toFixed(3)}deg`);
-        stage.style.setProperty("--hero-rotate-y", `${x.toFixed(3)}deg`);
+        stage.style.setProperty("--hero-rotate-x", `${(y * -0.75).toFixed(3)}deg`);
+        stage.style.setProperty("--hero-rotate-y", `${(x * 0.75).toFixed(3)}deg`);
       });
     };
 
