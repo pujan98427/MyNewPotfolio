@@ -15,9 +15,8 @@ import { site } from "@/lib/site";
 export function HomePage() {
   const featuredProjects=projects.slice(0,4);
   const otherContributions=projects.slice(4).filter(project=>project.ownership==="employer");
-  const featuredToolSlugs=new Set(["web-doctor","svg-base64-converter"]);
+  const featuredToolSlugs=new Set(["web-doctor","image-compressor","qr-code-generator","svg-base64-converter"]);
   const featuredLabTools=labTools.filter((tool) => featuredToolSlugs.has(tool.slug));
-  const otherLabTools=labTools.filter((tool) => !featuredToolSlugs.has(tool.slug) && tool.documentationSlug).slice(0,6);
 
   return <main id="main">
     <HeroStage />
@@ -61,9 +60,8 @@ export function HomePage() {
     </section>
 
     <section className="home-lab section" id="lab" data-section="07" aria-labelledby="home-lab-heading">
-      <header className="home-overview-head"><p className="eyebrow">07 / The Lab</p><h2 id="home-lab-heading">The Lab.</h2><p>Small tools I build for everyday web work. No account and no unnecessary steps.</p><nav className="home-lab-shortcuts" aria-label="Featured Lab destinations"><Link href="/lab">All Lab tools</Link><Link href="/lab/web-doctor">Web Doctor</Link><Link href="/lab/svg-base64-converter">SVG converter</Link></nav></header>
+      <header className="home-overview-head"><p className="eyebrow">07 / The Lab</p><h2 id="home-lab-heading">The Lab.</h2><p>Small tools I build for everyday web work. No account and no unnecessary steps.</p><nav className="home-lab-shortcuts" aria-label="Featured Lab destinations"><Link href="/lab">Explore all tools <ArrowUpRight aria-hidden="true" /></Link></nav></header>
       <div className="home-lab-featured">{featuredLabTools.map(tool=><article key={tool.slug}><span>{tool.number} / {tool.category}</span><h3>{tool.title}</h3><p>{tool.description}</p><nav aria-label={`${tool.title} actions`}><Link href={`/lab/${tool.slug}`} aria-label={`Open ${tool.title}`}>Open tool <ArrowUpRight aria-hidden="true" /></Link><Link href={`/writing/${tool.documentationSlug}`} aria-label={`Read documentation for ${tool.title}`}>Read documentation <ArrowUpRight aria-hidden="true" /></Link></nav></article>)}</div>
-      <div className="home-lab-directory"><p className="eyebrow">More tools</p><div>{otherLabTools.map(tool=><article key={tool.slug}><span>{tool.number}</span><div><h3>{tool.title}</h3><p>{tool.description}</p><nav aria-label={`${tool.title} actions`}><Link href={`/lab/${tool.slug}`} aria-label={`Open ${tool.title}`}>Open tool <ArrowUpRight aria-hidden="true" /></Link><Link href={`/writing/${tool.documentationSlug}`} aria-label={`Read documentation for ${tool.title}`}>Read documentation <ArrowUpRight aria-hidden="true" /></Link></nav></div></article>)}</div></div>
     </section>
   </main>;
 }
