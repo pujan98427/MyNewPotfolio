@@ -12,7 +12,7 @@ const contentSecurityPolicy=[
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDevelopment?" 'unsafe-eval'":""}${turnstileEnabled?` ${turnstileOrigin}`:""}${adsenseEnabled?` ${adsenseScriptOrigin}`:""}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data:${adsenseEnabled?` ${adsenseScriptOrigin} https://googleads.g.doubleclick.net`:""}`,
+  `img-src 'self' data: blob:${adsenseEnabled?` ${adsenseScriptOrigin} https://googleads.g.doubleclick.net`:""}`,
   "font-src 'self'",
   `connect-src 'self'${isDevelopment?" ws: wss:":""}${adsenseEnabled?` ${adsenseScriptOrigin} https://googleads.g.doubleclick.net`:""}`,
   `frame-src 'self'${turnstileEnabled?` ${turnstileOrigin}`:""}${adsenseEnabled?` ${adsenseFrameOrigins}`:""}`,
