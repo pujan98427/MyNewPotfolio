@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AtSign, Camera, Link as LinkIcon, MessageCircle, MoreHorizontal, Music2, Pin, Play, Send } from "lucide-react";
 import styles from "./simple-tools.module.css";
 import { trackProductEvent } from "@/lib/analytics/product-events";
@@ -20,6 +20,7 @@ const socialServices: readonly { value: SocialService; label: string; placeholde
 ];
 const primarySocialServices: readonly SocialService[] = ["instagram", "facebook", "linkedin", "youtube", "tiktok", "whatsapp"];
 const captionPresets: Record<Exclude<CaptionPreset, "" | "custom">, string> = { visit: "Scan to visit", follow: "Scan to follow", connect: "Scan to connect", menu: "Scan to view menu", learn: "Scan to learn more", contact: "Scan to contact us" };
+const normalizeHex = (value: string) => { const compact = value.trim().replace(/^#/, ""); return /^[0-9a-f]{6}$/i.test(compact) ? `#${compact.toUpperCase()}` : null; };
 
 function SocialServiceIcon({ service }: { service: SocialService }) {
   if (service === "instagram") return <Camera aria-hidden="true" />;
@@ -60,6 +61,10 @@ export function QrCodeTool() {
   const [size, setSize] = useState(512);
   const [foreground, setForeground] = useState("#151515");
   const [background, setBackground] = useState("#ffffff");
+  const [foregroundHex, setForegroundHex] = useState("#151515");
+  const [backgroundHex, setBackgroundHex] = useState("#FFFFFF");
+  const [foregroundHexError, setForegroundHexError] = useState("");
+  const [backgroundHexError, setBackgroundHexError] = useState("");
   const [errorCorrection, setErrorCorrection] = useState<ErrorCorrection>("M");
   const [margin, setMargin] = useState(2);
   const [dataUrl, setDataUrl] = useState("");
@@ -74,9 +79,23 @@ export function QrCodeTool() {
 
   useMobileResultScroll(Boolean(dataUrl), resultRef);
 
+  useEffect(() => {
+    if (!encodedValue) return;
+    let active = true;
+    const options = { errorCorrectionLevel: errorCorrection, margin, width: size, color: { dark: foreground, light: background } };
+    void import("qrcode").then(async (QRCode) => {
+      const [nextDataUrl, nextSvg] = await Promise.all([QRCode.toDataURL(encodedValue, options), QRCode.toString(encodedValue, { ...options, type: "svg" })]);
+      if (!active) return;
+      setDataUrl(nextDataUrl); setSvg(nextSvg); setScanWarning(contrastRatio(foreground, background) < 3 ? "This colour combination may be difficult to scan. Try a darker QR colour." : "");
+    }).catch(() => { if (active) setError("The QR preview could not be updated in this browser."); });
+    return () => { active = false; };
+  }, [background, encodedValue, errorCorrection, foreground, margin, size]);
+
   const resetResult = () => { setDataUrl(""); setSvg(""); setEncodedValue(""); setError(""); setScanWarning(""); };
   const selectKind = (nextKind: Exclude<QrKind, "whatsapp">) => { setKind(nextKind); if (nextKind === "social") setValue("pujanchapagain7"); resetResult(); };
   const selectSocialService = (nextService: SocialService) => { setSocialService(nextService); setValue(nextService === "instagram" ? "pujanchapagain7" : ""); setShowMoreSocialServices(!primarySocialServices.includes(nextService)); resetResult(); };
+  const updateHex = (value: string, setDraft: (next: string) => void, setColour: (next: string) => void, setValidationError: (next: string) => void) => { setDraft(value); const normalized = normalizeHex(value); if (normalized) { setColour(normalized.toLowerCase()); setValidationError(""); } };
+  const validateHex = (value: string, setDraft: (next: string) => void, setValidationError: (next: string) => void) => { const normalized = normalizeHex(value); if (!normalized) { setValidationError("Enter a six-digit HEX colour, such as #E45447."); return; } setDraft(normalized); setValidationError(""); };
   const payload = () => buildQrPayload({ kind, value, socialService, recipient, message, subject, wifiName, wifiPassword, wifiSecurity, wifiHidden, contactName, contactEmail, contactPhone });
   const generate = async () => {
     const content = payload();
@@ -111,7 +130,7 @@ export function QrCodeTool() {
         {kind === "sms" && <>{recipientField("qr-sms", "Phone number", "+44 7700 900000")}<div className={styles.field}><label htmlFor="qr-sms-message">Message (optional)</label><textarea id="qr-sms-message" value={message} onChange={(event) => setMessage(event.target.value)} /></div></>}
         {kind === "contact" && <><div className={styles.field}><label htmlFor="contact-name">Name</label><input id="contact-name" value={contactName} onChange={(event) => setContactName(event.target.value)} /></div><div className={styles.field}><label htmlFor="contact-email">Email</label><input id="contact-email" type="email" value={contactEmail} onChange={(event) => setContactEmail(event.target.value)} /></div><div className={styles.field}><label htmlFor="contact-phone">Phone</label><input id="contact-phone" type="tel" value={contactPhone} onChange={(event) => setContactPhone(event.target.value)} /></div></>}
         <details className={styles.advanced}><summary>Add a caption</summary><div className={styles.field}><label htmlFor="qr-caption">Caption</label><select id="qr-caption" value={captionPreset} onChange={(event) => setCaptionPreset(event.target.value as CaptionPreset)}><option value="">No caption</option><option value="visit">Scan to visit</option><option value="follow">Scan to follow</option><option value="connect">Scan to connect</option><option value="menu">Scan to view menu</option><option value="learn">Scan to learn more</option><option value="contact">Scan to contact us</option><option value="custom">Write my own</option></select>{captionPreset === "custom" && <input aria-label="Custom QR card caption" value={customCaption} maxLength={100} onChange={(event) => setCustomCaption(event.target.value)} placeholder="Follow us on Instagram" />}</div><p className={styles.fieldHint}>The caption appears on the QR card. The QR itself still only opens the destination.</p></details>
-        <div className={styles.row}><div className={styles.field}><label htmlFor="qr-foreground">QR colour</label><input id="qr-foreground" type="color" value={foreground} onChange={(event) => setForeground(event.target.value)} /></div><div className={styles.field}><label htmlFor="qr-background">Background</label><input id="qr-background" type="color" value={background} onChange={(event) => setBackground(event.target.value)} /></div><div className={styles.field}><label htmlFor="qr-size">Size</label><select id="qr-size" value={size} onChange={(event) => setSize(Number(event.target.value))}><option value="256">256 px</option><option value="512">512 px</option><option value="1024">1024 px</option></select></div></div>
+        <div className={styles.row}><div className={styles.field}><label htmlFor="qr-foreground">QR colour</label><div className={styles.colourControl}><input id="qr-foreground" type="color" value={foreground} onChange={(event) => setForeground(event.target.value)} /><input aria-label="QR colour HEX value" value={foreground.toUpperCase()} onChange={(event) => { const next = event.target.value.trim(); if (/^#[0-9A-F]{6}$/i.test(next)) setForeground(next.toLowerCase()); }} spellCheck={false} /></div></div><div className={styles.field}><label htmlFor="qr-background">Background</label><div className={styles.colourControl}><input id="qr-background" type="color" value={background} onChange={(event) => setBackground(event.target.value)} /><input aria-label="Background colour HEX value" value={background.toUpperCase()} onChange={(event) => { const next = event.target.value.trim(); if (/^#[0-9A-F]{6}$/i.test(next)) setBackground(next.toLowerCase()); }} spellCheck={false} /></div></div><div className={styles.field}><label htmlFor="qr-size">Size</label><select id="qr-size" value={size} onChange={(event) => setSize(Number(event.target.value))}><option value="256">256 px</option><option value="512">512 px</option><option value="1024">1024 px</option></select></div></div>
         <details className={styles.advanced}><summary>Customise</summary><div className={styles.row}><div className={styles.field}><label htmlFor="qr-correction">Error correction</label><select id="qr-correction" value={errorCorrection} onChange={(event) => setErrorCorrection(event.target.value as ErrorCorrection)}><option value="L">Standard</option><option value="M">Balanced</option><option value="Q">High</option><option value="H">Maximum</option></select></div><div className={styles.field}><label htmlFor="qr-margin">Quiet-zone margin</label><select id="qr-margin" value={margin} onChange={(event) => setMargin(Number(event.target.value))}><option value="1">Compact</option><option value="2">Standard</option><option value="4">Wide</option></select></div></div></details>
         <div className={styles.actions}><button type="button" className={styles.button} onClick={generate} disabled={busy}>{busy ? "Creating…" : "Create QR"}</button><button type="button" className={styles.button} data-quiet onClick={clear}>Clear</button></div><p className={styles.status} data-error={Boolean(error)} role="status">{error}</p>
       </section>
