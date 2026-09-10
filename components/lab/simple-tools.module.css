@@ -63,6 +63,18 @@
 @media(max-width:760px){.comparison>div{grid-template-columns:1fr}.comparison figure{padding:.75rem}.comparison img{max-height:none}}
 @media print{.privacy,.metadataNote,.grid>.panel:first-child,.resultLinks{display:none!important}.workspace{margin:0;padding:0;border:0;background:white}.grid{display:block;border:0;background:white}.panel{padding:0;background:white}.resultHero{background:white;color:black;border-color:black}.resultHero .resultLabel,.resultHero p{color:black}.preview{min-height:0;background:white}.actions{display:none}.encodedValue{background:white}}
 
+.downloadAction{margin-block:1.25rem}
+.downloadAction .button{display:inline-flex;align-items:center;justify-content:center;min-height:52px;min-width:12rem;padding:.9rem 1.5rem;font-size:1rem;font-weight:700;text-decoration:none}
+@media(max-width:760px){.downloadAction .button{width:100%;min-width:0}}
+.imageContinue{align-items:center;gap:0 .75rem;margin-top:.5rem;padding-top:.5rem;border-top:0}
+.imageContinue span{flex-basis:auto;font-size:.8rem;font-weight:400;letter-spacing:0;text-transform:none}
+.imageContinue button{min-height:44px;font-size:.85rem;font-weight:600;transition:color var(--duration-fast) var(--ease-out)}
+.imageContinue button::after{content:none}
+.imageContinue button:is(:hover,:focus-visible){text-decoration:underline;text-underline-offset:.2em}
+.imageContinue button:focus-visible{outline:2px solid var(--color-brand-strong);outline-offset:3px}
+.imageContinue button:active:not(:disabled){color:var(--color-ink)}
+@media(prefers-reduced-motion:reduce){.imageContinue button{transition:none}}
+
 /* Thirds guides stay inside the selection and never intercept dragging. */
 .cropFrame::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;background:linear-gradient(to right,transparent calc(33.333% - .5px),rgb(255 255 255/.5) calc(33.333% - .5px),rgb(255 255 255/.5) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.667% - .5px),rgb(255 255 255/.5) calc(66.667% - .5px),rgb(255 255 255/.5) calc(66.667% + .5px),transparent calc(66.667% + .5px)),linear-gradient(to bottom,transparent calc(33.333% - .5px),rgb(255 255 255/.5) calc(33.333% - .5px),rgb(255 255 255/.5) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.667% - .5px),rgb(255 255 255/.5) calc(66.667% - .5px),rgb(255 255 255/.5) calc(66.667% + .5px),transparent calc(66.667% + .5px))}
 .cropFrame:active::before,.cropCanvas:has(.cropHandle:active) .cropFrame::before{opacity:1}
