@@ -22,6 +22,7 @@ assert.ok(labTools.every(tool=>tool.documentationSlug&&tool.searchTerms.length>=
 
 const normalize=value=>value.toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 const match=query=>{const terms=normalize(query).split(" ");return labTools.find(tool=>{const text=normalize([tool.title,tool.description,tool.category,...tool.searchTerms].join(" "));return terms.every(term=>text.includes(term))})?.slug};
+for(const query of ["compress photo","make image smaller"])assert.equal(match(query),"image-compressor",query);
 for(const [query,slug] of [["make photo smaller","image-compressor"],["reduce photo file size","image-compressor"],["resize picture","image-resizer"],["change png to webp","image-format-converter"],["join pdf","pdf-merger"],["combine pdf files","pdf-merger"],["make pdf smaller","pdf-compressor"],["make qr","qr-code-generator"],["choose random name","random-picker"],["choose randomly","random-picker"]])assert.equal(match(query),slug,query);
 
 const localSources=["components/lab/image-tool.tsx","components/lab/pdf-tool.tsx","components/lab/qr-code-tool.tsx","components/lab/random-picker-tool.tsx"].map(path=>readFileSync(path,"utf8")).join("\n");
