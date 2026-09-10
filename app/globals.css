@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+:root {
+  --header-height:0px;
+  --sticky-header-height:0px;
+  --header-scroll-offset:calc(var(--sticky-header-height) + 24px);
+}
+
 /* Tailwind v4 design tokens: the single source of truth for the visual system. */
 @theme {
   --font-body: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
@@ -105,7 +111,7 @@
 
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; }
-:where(#selected-work,#lab,#skills,#experience,#education,#about,#contact) { scroll-margin-top:6rem; }
+:where(#selected-work,#lab,#skills,#experience,#education,#about,#contact) { scroll-margin-top:var(--header-scroll-offset); }
 body { margin:0; overflow-x:clip; background:var(--color-canvas); color:var(--color-ink); font-family:var(--font-body); font-size:var(--text-body); }
 .route-transition { min-width:0; }
 @media(prefers-reduced-motion:no-preference) {
@@ -117,7 +123,7 @@ img { display:block; }
 ::selection { background:var(--color-ink); color:var(--color-accent); }
 .skip-link { position:fixed; z-index:100; left:1rem; top:1rem; padding:.75rem 1rem; background:var(--color-ink); color:var(--color-canvas); transform:translateY(-200%); }
 .skip-link:focus { transform:none; }
-:focus-visible { outline:2px solid var(--color-focus-ring); outline-offset:3px; box-shadow:0 0 0 6px var(--color-focus-halo); scroll-margin-block:6rem; }
+:focus-visible { outline:2px solid var(--color-focus-ring); outline-offset:3px; box-shadow:0 0 0 6px var(--color-focus-halo); scroll-margin-block:var(--header-scroll-offset); }
 :focus:not(:focus-visible) { outline:none; }
 :where(a[href],button,input,textarea,select,summary) { transition:color var(--duration-fast) var(--ease-smooth),background-color var(--duration-fast) var(--ease-smooth),border-color var(--duration-fast) var(--ease-smooth),opacity var(--duration-fast) var(--ease-smooth),transform var(--duration-fast) var(--ease-smooth),box-shadow var(--duration-fast) var(--ease-smooth),filter var(--duration-fast) var(--ease-smooth); }
 :where(a[href]):hover { color:var(--color-link-hover); text-decoration-color:currentColor; }
@@ -460,8 +466,12 @@ details[open]>summary { color:var(--color-link-hover); }
 .contact-foot svg { width:1rem; }
 .contact-foot div { display:flex; justify-content:flex-end; gap:1.5rem; }
 footer { display:flex; justify-content:space-between; border-top:1px solid var(--ink); padding:1.5rem 2.2rem; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; }
-.site-footer { align-items:center; gap:2rem; }.site-footer nav { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:.8rem 1.5rem; }.site-footer a { border-bottom:1px solid transparent; }.site-footer a:hover { border-color:currentColor; }
-.site-footer[data-variant="home"] { justify-content:center; border-bottom:1px solid var(--ink); padding-block:1.5rem; text-align:center; }
+.site-footer { align-items:center; gap:.5rem 1.5rem; padding-block:.75rem; }.site-footer nav { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:.25rem 1.25rem; }.site-footer a { border-bottom:1px solid transparent; }.site-footer a:hover { border-color:currentColor; }
+.site-footer[data-variant="home"] { justify-content:center; border-bottom:1px solid var(--ink); padding-block:1rem; text-align:center; }
+@media(max-width:760px) {
+  .site-footer[data-variant="legal"] { flex-direction:column; align-items:flex-start; gap:0; }
+  .site-footer[data-variant="legal"] nav { justify-content:flex-start; }
+}
 .page-intro { min-height:70svh; padding:clamp(7rem,13vw,13rem) 2.2rem 4rem; display:grid; grid-template-columns:1fr 3fr; align-content:end; gap:2rem; border-bottom:1px solid var(--ink); }
 .page-intro h1,.writing-detail h1,.tool-page h1 { grid-column:2; margin:0; max-width:12ch; font-family:var(--font-serif),serif; font-size:clamp(4rem,9vw,9rem); font-weight:400; line-height:.88; letter-spacing:-.06em; }
 .page-intro>p:last-child { grid-column:2; max-width:40rem; margin:1rem 0 0; color:var(--muted); font-size:1.15rem; line-height:1.55; }
@@ -879,22 +889,82 @@ footer { display:flex; justify-content:space-between; border-top:1px solid var(-
   .svg-output-list article>header button,.svg-output-list article>header>div { width:100%; }.svg-output-list article>header button { justify-content:center; }
 }
 @media(max-width:760px) { .doctor-recheck,.privacy-body section { grid-template-columns:1fr; }.doctor-recheck button { justify-self:start; }.privacy-body .eyebrow,.privacy-body h2,.privacy-body p:not(.eyebrow) { grid-column:auto; grid-row:auto; }.score-editorial-intro { position:static; }.score-chapters>li { grid-template-columns:2rem minmax(0,1fr); } }
+/* Lab content starts below the complete navigation, without a hero-sized spacer. */
+main>.tool-page,
+main:has(>.lab-directory)>.page-intro {
+  margin-top:0;
+  padding-top:clamp(1.5rem,4vw,3rem);
+  min-height:0;
+}
+main:has(>.lab-directory)>.page-intro { align-content:start; }
+main:has(>.lab-directory)>.page-intro>.eyebrow { margin-top:0; }
+@media(max-width:760px) {
+  body:has(.tool-page,.lab-directory) .site-header { row-gap:0; }
+  body:has(.tool-page,.lab-directory) .site-header nav {
+    position:static;
+    grid-column:1/-1;
+    grid-row:2;
+    padding:.8rem 0 0;
+    border-bottom:0;
+  }
+}
 .sr-only { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; margin:-1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important; white-space:nowrap!important; border:0!important; }
-/* Keep pending inventory measurable for AdSense without an empty page block. */
-.advertisement:not(:has(ins[data-ad-status="filled"])){
+/* Reserve a banner and label only when consent/content/proximity allow loading. */
+.advertisement {
+  --ad-banner-height:90px;
+  --ad-reserved-size:calc(var(--ad-banner-height) + 24px);
+  grid-template-rows:24px var(--ad-banner-height);
+  padding-block:0;
+  border-block:0;
+  margin-block:2rem!important;
+}
+.advertisement>span { margin:0;line-height:24px; }
+.advertisement>div,.advertisement .adsense-inventory { height:var(--ad-banner-height); }
+:is(.tool-ad-boundary,.lab-index-ad-boundary,.documentation-ad-boundary) {
+  margin-block:2rem;
+  padding-block:0;
+  border-block:0;
+}
+:is(.tool-ad-boundary,.lab-index-ad-boundary,.documentation-ad-boundary)>.advertisement { margin-block:0!important; }
+@media(max-width:760px) { .advertisement { --ad-banner-height:50px; } }
+.advertisement:not([data-ad-state="ready"]){
   position:relative!important;
   block-size:0;min-block-size:0;max-block-size:0;
   margin-block:0!important;padding-block:0!important;border-block:0;
   contain:layout paint;contain-intrinsic-block-size:0;
   visibility:hidden;pointer-events:none;
 }
-.advertisement:not(:has(ins[data-ad-status="filled"]))>div{
+.advertisement:not([data-ad-state="ready"])>div{
   position:absolute;inset:0 0 auto;
   height:var(--ad-reserved-size);min-height:var(--ad-reserved-size);
 }
-:is(.tool-ad-boundary,.lab-index-ad-boundary,.documentation-ad-boundary):not(:has(ins[data-ad-status="filled"])){
+:is(.tool-ad-boundary,.lab-index-ad-boundary,.documentation-ad-boundary):not(:has(.advertisement[data-ad-state="ready"])){
   margin-block:0!important;padding-block:0!important;border-block:0;
   min-height:0;block-size:0;
+}
+/* The directory's optional footer placement occupies space only after a fill.
+   Keep the loading slot measurable without reserving a visible page region. */
+.lab-index-ad-boundary:not(:has(ins[data-ad-status="filled"])) {
+  position:relative;
+  block-size:0;
+  min-block-size:0;
+  max-block-size:0;
+  margin-block:0!important;
+  padding-block:0!important;
+  border-block:0;
+  overflow:hidden;
+  contain:layout paint;
+}
+.lab-index-ad-boundary:not(:has(ins[data-ad-status="filled"]))>.advertisement {
+  position:absolute!important;
+  inset:0 var(--gutter) auto!important;
+  width:auto;
+  margin:0!important;
+}
+/* Once inventory is explicitly unfilled, no measurable placeholder is needed. */
+.advertisement:has(ins[data-ad-status="unfilled"]):not(:has(ins[data-ad-status="filled"])),
+:is(.tool-ad-boundary,.lab-index-ad-boundary,.documentation-ad-boundary):has(ins[data-ad-status="unfilled"]):not(:has(ins[data-ad-status="filled"])) {
+  display:none!important;
 }
 .lab-category-filters{display:flex;flex-wrap:wrap;gap:.25rem .75rem}
 .lab-category-filters button{min-height:44px;padding:.5rem .25rem;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--color-ink);font:inherit;font-size:.85rem;cursor:pointer;transition:color var(--duration-fast) var(--ease-out),border-color var(--duration-fast) var(--ease-out)}
@@ -905,6 +975,14 @@ footer { display:flex; justify-content:space-between; border-top:1px solid var(-
 @media(prefers-reduced-motion:reduce){.lab-category-filters button{transition:none}}
 .lab-directory{display:grid;gap:clamp(1.5rem,3vw,2.5rem)}
 .lab-directory.section{padding-block:clamp(1.5rem,3vw,2.5rem)}
+/* One content-to-footer gap, whether the optional directory ad fills or not. */
+main:has(>.lab-directory) {
+  padding-bottom:clamp(2rem,4vw,4rem);
+  border-bottom:0;
+}
+main>.lab-directory.section { padding-bottom:0; margin-bottom:0; border-bottom:0; }
+main:has(>.lab-directory)>.lab-index-ad-boundary { margin-bottom:0; border-bottom:0; }
+main:has(>.lab-directory)+.site-footer { margin-top:0; border-top:1px solid var(--rule-hairline); }
 .lab-directory .lab-category article{align-content:start;align-self:start;min-height:0;padding-block:1rem}
 .lab-directory .lab-category article>span{font-size:.7rem;color:var(--color-muted);padding-top:.2rem}
 .lab-directory .lab-category nav .lab-tool-action{color:var(--color-brand-strong);font-size:.85rem;font-weight:700;text-transform:none;letter-spacing:0}

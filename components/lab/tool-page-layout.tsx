@@ -10,11 +10,11 @@ import { getToolEducation } from "@/data/tool-education";
 import { webApplicationStructuredData } from "@/lib/seo/structured-data";
 import { ToolOpenedEvent } from "@/components/analytics/tool-opened-event";
 
-type SharedProps={title:string;description:string;path:`/lab/${string}`;children:ReactNode;variant?:"editorial"|"compact"|"product";advertisement?:ReactNode};
+type SharedProps={title:string;description:string;path:`/lab/${string}`;children:ReactNode;variant?:"editorial"|"compact"|"product";supplementalDocumentation?:ReactNode;advertisement?:ReactNode};
 type ToolPageLayoutProps=SharedProps&({immersive?:false;education?:never}|{immersive:true;education:React.ReactNode});
 
 /** SEO and content contract shared by every interactive Lab tool. */
-export function ToolPageLayout({title,description,path,children,variant="editorial",advertisement,...mode}:ToolPageLayoutProps){
+export function ToolPageLayout({title,description,path,children,variant="editorial",supplementalDocumentation,advertisement,...mode}:ToolPageLayoutProps){
   const tool=labTools.find(item=>`/lab/${item.slug}`===path);
   if(!tool)throw new Error(`ToolPageLayout requires a registered Lab tool for ${path}.`);
   // Established tools use the detailed data record; newer local utilities use
@@ -38,7 +38,7 @@ export function ToolPageLayout({title,description,path,children,variant="editori
     </section>}
     {!immersive&&tool.advertisingEligible&&<ToolAdvertisementSlot placement="after-tool-result" publisherContentId={`${tool.slug}-workspace`} />}
     {!immersive&&!tool.advertisingEligible&&advertisement}
-    <div id={`${tool.slug}-documentation`}>{immersive?mode.education:standardEducation?<ToolEducation content={standardEducation} />:<section className="tool-education"><header><p className="eyebrow">About this tool</p><h2>A direct route from input to result.</h2></header><div><h3>How it works</h3><p>{description} The interactive work happens locally in your browser, so your selected files or entered choices are not uploaded to this site.</p><h3>Before you download</h3><p>Review the preview, dimensions or file-size information shown by the tool. Keep the original file until you have checked that the downloaded result suits its intended use.</p><h3>Privacy</h3><p>This tool has no account and does not store your input. Closing or refreshing the page clears the current workspace.</p></div></section>}</div>
+    <div id={`${tool.slug}-documentation`}>{immersive?mode.education:standardEducation?<ToolEducation content={standardEducation} />:<section className="tool-education"><header><p className="eyebrow">About this tool</p><h2>A direct route from input to result.</h2></header><div><h3>How it works</h3><p>{description} The interactive work happens locally in your browser, so your selected files or entered choices are not uploaded to this site.</p><h3>Before you download</h3><p>Review the preview, dimensions or file-size information shown by the tool. Keep the original file until you have checked that the downloaded result suits its intended use.</p><h3>Privacy</h3><p>This tool has no account and does not store your input. Closing or refreshing the page clears the current workspace.</p></div></section>}{supplementalDocumentation}</div>
     {tool.advertisingEligible&&<ToolAdvertisementSlot placement="after-tool-documentation" publisherContentId={`${tool.slug}-documentation`} />}
     <section className="tool-related" aria-labelledby={`${tool.slug}-related`}><p className="eyebrow">Related tools</p><h2 id={`${tool.slug}-related`}>Other ways to continue.</h2><nav className="tool-switcher" aria-label="Related lab tools">{relatedTools.map(item=><Link href={`/lab/${item.slug}`} key={item.slug}><span>{item.number}</span>{item.title}<ArrowUpRight aria-hidden="true" /></Link>)}</nav></section>
     <JsonLd data={schema} />

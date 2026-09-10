@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useAdvertisingConsent } from "@/lib/advertising/cmp";
+import { useAdvertisingConsent,useAdvertisingPersonalizationConsent } from "@/lib/advertising/cmp";
 
 type ReportAdvertisement = {
   placement:"after-report-value"|"between-analysis-sections";
@@ -60,6 +60,7 @@ export function Advertisement({children,placement,context,publisherContentId}:Ad
   const [isReady,setIsReady]=useState(false);
   const [hasPublisherContent,setHasPublisherContent]=useState(false);
   const consent=useAdvertisingConsent();
+  const personalizationConsent=useAdvertisingPersonalizationConsent();
 
   useEffect(()=>{
     const container=containerRef.current;
@@ -74,9 +75,9 @@ export function Advertisement({children,placement,context,publisherContentId}:Ad
     },{rootMargin:"400px 0px"});
     observer.observe(container);
     return ()=>observer.disconnect();
-  },[publisherContentId]);
+  },[publisherContentId,consent]);
 
   if(children===null||children===undefined||children===false||consent==="not-configured"||consent==="rejected")return null;
-  const canLoad=hasPublisherContent&&isReady&&consent==="accepted";
+  const canLoad=hasPublisherContent&&isReady&&consent==="accepted"&&(personalizationConsent==="accepted"||personalizationConsent==="rejected");
   return <aside ref={containerRef} className="advertisement" data-ad-placement={placement} data-ad-context={context} data-ad-state={canLoad?"ready":"reserved"} data-consent-state={consent} aria-label="Advertisement" aria-describedby={publisherContentId} aria-busy={!canLoad}><span>Advertisement</span><div>{canLoad?children:null}</div></aside>;
 }

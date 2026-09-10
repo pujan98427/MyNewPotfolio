@@ -5,7 +5,8 @@ import {useEffect,type RefObject} from "react";
 export function revealResultIfNeeded(region:HTMLElement){
   const bounds=region.getBoundingClientRect();
   const viewport=window.visualViewport;
-  const top=(viewport?.offsetTop??0)+96;
+  const headerHeight=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sticky-header-height"))||0;
+  const top=(viewport?.offsetTop??0)+headerHeight+24;
   const bottom=(viewport?.offsetTop??0)+(viewport?.height??window.innerHeight);
   // Reveal the beginning of a long report, not its bottom or the page footer.
   const visibleHeight=Math.min(bounds.height,160,Math.max(0,bottom-top));
