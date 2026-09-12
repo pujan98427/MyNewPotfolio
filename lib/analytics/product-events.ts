@@ -20,6 +20,12 @@ export type ProductEventMap={
   contact_success:Record<string,never>;
   contact_error:Record<string,never>;
   tool_opened:{tool_name:string};
+  file_selected:{tool_name:string};
+  tool_processed:{tool_name:string};
+  result_downloaded:{tool_name:string};
+  tool_handoff_used:{from_tool:string;to_tool:string};
+  crop_resized:{tool_name:"image-cropper"};
+  crop_ratio_selected:{tool_name:"image-cropper";ratio:"free"|"1:1"|"16:9"|"4:5"|"9:16"};
   qr_generated:{qr_type:"website"|"social"|"text"|"wifi"|"email"|"phone"|"sms"|"whatsapp"|"contact"};
   qr_downloaded:{qr_type:"website"|"social"|"text"|"wifi"|"email"|"phone"|"sms"|"whatsapp"|"contact";output_format:"png"|"svg"|"card"};
   image_compressed:{input_format:AnalyticsFileFormat;output_format:AnalyticsFileFormat;compression_bucket:CompressionBucket};
@@ -40,7 +46,27 @@ let adapter:ProductAnalyticsAdapter|null=null;
 /** Register only a privacy-reviewed analytics adapter after any required consent. */
 export function registerProductAnalyticsAdapter(nextAdapter:ProductAnalyticsAdapter){adapter=nextAdapter;return ()=>{if(adapter===nextAdapter)adapter=null;};}
 
-export function trackProductEvent<Name extends keyof ProductEventMap>(name:Name,properties:ProductEventMap[Name]){adapter?.track(name,properties);}
+export function trackProductEvent<Name extends keyof ProductEventMap>(name:Name,properties:ProductEventMap[Name]){try{adapter?.track(name,properties);}catch{/* Analytics must never interrupt a tool. */}}
+
+/** Call from the analytics-consent integration after configuring the Google tag.
+ * Advertising consent alone is not analytics consent. No buffering or replay.
+ */
+export function registerGa4UxAnalytics(options:{measurementId:string;hasAnalyticsConsent:()=>boolean;gtag:(command:"event",name:string,params:Record<string,string>)=>void}){
+  const id=options.measurementId.trim();
+  if(!/^G-[A-Z0-9]+$/.test(id))return ()=>{};
+  const tools=new Set(["image-compressor","image-resizer","image-format-converter","image-cropper","pdf-merger","pdf-compressor","qr-code-generator","random-picker","web-doctor","meta-tag-generator","open-graph-preview","seo-preview","svg-to-base64","contrast-checker","css-clamp-generator"]);
+  const fields:Record<string,readonly string[]>={tool_opened:["tool_name"],file_selected:["tool_name"],tool_processed:["tool_name"],result_downloaded:["tool_name"],tool_handoff_used:["from_tool","to_tool"],crop_resized:["tool_name"],crop_ratio_selected:["tool_name","ratio"]};
+  return registerProductAnalyticsAdapter({track(name,properties){
+    if(!options.hasAnalyticsConsent()||!Object.hasOwn(fields,name))return;
+    const params:Record<string,string>={send_to:id};
+    for(const key of fields[name]){
+      const value=(properties as Record<string,unknown>)[key];
+      if(typeof value!=="string"||!(key==="ratio"?["free","1:1","16:9","4:5","9:16"].includes(value):tools.has(value)))return;
+      params[key]=value;
+    }
+    options.gtag("event",name,params);
+  }});
+}
 
 export function scoreBand(score:number):ScoreBand{return score>=80?"good":score>=60?"needs-work":"attention";}
 export function compressionBucket(percent:number):CompressionBucket{return percent>=75?"75_plus":percent>=50?"50_to_74":percent>=25?"25_to_49":percent>0?"under_25":"none";}
