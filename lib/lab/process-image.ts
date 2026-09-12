@@ -1,3 +1,4 @@
+import {cropPixelRect,cropTransform} from "./crop-geometry";
 import type {ImageFormatCandidate,ImageWorkerRequest,ImageWorkerResponse,ProcessImageOptions,ProcessedImage} from "./image-worker-types";
 export type {ImageFormatCandidate,ImageOperation} from "./image-worker-types";
 type DecodedImage={source:ImageBitmap|HTMLImageElement;width:number;height:number;close:()=>void};
@@ -45,11 +46,10 @@ async function processImageOnMainThread({file,mode,width,height,quality,outputTy
   const htmlCanvases:HTMLCanvasElement[]=[],offscreenCanvases:OffscreenCanvas[]=[];
   try{
     if(mode==="crop"){
-      const quarterTurn=cropRotation%180!==0,workingWidth=quarterTurn?decoded.height:decoded.width,workingHeight=quarterTurn?decoded.width:decoded.height;
+      const {workingWidth,workingHeight,sx,sy,sw,sh}=cropPixelRect(decoded.width,decoded.height,cropRotation,cropX,cropY,cropWidth,cropHeight);
       const working=document.createElement("canvas");htmlCanvases.push(working);working.width=workingWidth;working.height=workingHeight;
       const workingContext=working.getContext("2d");if(!workingContext)throw new Error("Canvas is unavailable.");
-      workingContext.translate(workingWidth/2,workingHeight/2);workingContext.scale(cropZoom,cropZoom);workingContext.rotate(cropRotation*Math.PI/180);workingContext.drawImage(decoded.source,-decoded.width/2,-decoded.height/2);
-      const sx=Math.round(cropX/100*workingWidth),sy=Math.round(cropY/100*workingHeight),sw=Math.max(1,Math.round(cropWidth/100*workingWidth)),sh=Math.max(1,Math.round(cropHeight/100*workingHeight));
+      workingContext.setTransform(...cropTransform(decoded.width,decoded.height,cropRotation,cropZoom));workingContext.drawImage(decoded.source,0,0);
       const output=document.createElement("canvas");htmlCanvases.push(output);output.width=sw;output.height=sh;
       const outputContext=output.getContext("2d");if(!outputContext)throw new Error("Canvas is unavailable.");
       outputContext.drawImage(working,sx,sy,sw,sh,0,0,sw,sh);

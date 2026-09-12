@@ -10,7 +10,7 @@ import {validateImageFile} from "@/lib/lab/file-validation";
 import {imageResizePresets} from "@/data/image-resize-presets";
 import {compressionBucket,trackProductEvent,type AnalyticsFileFormat} from "@/lib/analytics/product-events";
 import {imageToolError} from "@/lib/lab/tool-errors";
-import {clampCropExtent,lockedCropScale} from "@/lib/lab/crop-geometry";
+import {clampCropExtent,lockedCropScale,cropPixelRect} from "@/lib/lab/crop-geometry";
 
 export type ImageMode="compress"|"resize"|"convert"|"crop";
 type ImageToolName="image-compressor"|"image-resizer"|"image-format-converter"|"image-cropper";
@@ -158,7 +158,8 @@ export function ImageTool({mode}:{mode:ImageMode}){
   const cropWidthPercent=ratio==="free"?freeCropWidth:fittedCropWidth*cropScale/100;
   const cropHeightPercent=ratio==="free"?freeCropHeight:fittedCropHeight*cropScale/100;
   const cropLeft=(100-cropWidthPercent)*cropX/100,cropTop=(100-cropHeightPercent)*cropY/100;
-  const cropStyle={left:`${cropLeft}%`,top:`${cropTop}%`,width:`${cropWidthPercent}%`,height:`${cropHeightPercent}%`} satisfies CSSProperties;
+  const visualCrop=cropPixelRect(sourceWidth||1,sourceHeight||1,cropRotation,cropLeft,cropTop,cropWidthPercent,cropHeightPercent);
+  const cropStyle={left:`${visualCrop.sx/visualCrop.workingWidth*100}%`,top:`${visualCrop.sy/visualCrop.workingHeight*100}%`,width:`${visualCrop.sw/visualCrop.workingWidth*100}%`,height:`${visualCrop.sh/visualCrop.workingHeight*100}%`} satisfies CSSProperties;
   const cropCanvasStyle={"--crop-image-ratio":rotatedSourceRatio,aspectRatio:`${rotatedWidth||1}/${rotatedHeight||1}`} satisfies CSSProperties & {"--crop-image-ratio":number};
   const cropImageStyle={position:"absolute",left:"50%",top:"50%",width:`${sourceWidth&&rotatedWidth?sourceWidth/rotatedWidth*100:100}%`,height:`${sourceHeight&&rotatedHeight?sourceHeight/rotatedHeight*100:100}%`,transform:`translate(-50%, -50%) rotate(${cropRotation}deg) scale(${cropZoom})`} satisfies CSSProperties;
   const moveCrop=(event:React.PointerEvent<HTMLDivElement>)=>{
