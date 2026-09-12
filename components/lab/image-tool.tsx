@@ -10,6 +10,7 @@ import {validateImageFile} from "@/lib/lab/file-validation";
 import {imageResizePresets} from "@/data/image-resize-presets";
 import {compressionBucket,trackProductEvent,type AnalyticsFileFormat} from "@/lib/analytics/product-events";
 import {imageToolError} from "@/lib/lab/tool-errors";
+import {lockedCropScale} from "@/lib/lab/crop-geometry";
 
 export type ImageMode="compress"|"resize"|"convert"|"crop";
 type ImageToolName="image-compressor"|"image-resizer"|"image-format-converter"|"image-cropper";
@@ -178,7 +179,7 @@ export function ImageTool({mode}:{mode:ImageMode}){
     let nextWidth=Math.max(20,Math.min(maxWidth,west?drag.anchorX-pointerX:pointerX-drag.anchorX));
     let nextHeight=Math.max(20,Math.min(maxHeight,north?drag.anchorY-pointerY:pointerY-drag.anchorY));
     if(ratio!=="free"){
-      const scale=Math.min(maxWidth/fittedCropWidth,maxHeight/fittedCropHeight,Math.max(.25,nextWidth/fittedCropWidth,nextHeight/fittedCropHeight));
+      const scale=lockedCropScale(west?drag.anchorX-pointerX:pointerX-drag.anchorX,north?drag.anchorY-pointerY:pointerY-drag.anchorY,fittedCropWidth,fittedCropHeight,bounds.width,bounds.height,maxWidth,maxHeight);
       nextWidth=fittedCropWidth*scale;nextHeight=fittedCropHeight*scale;setCropScale(scale*100);
     }else{nextWidth=Math.min(maxWidth,nextWidth);nextHeight=Math.min(maxHeight,nextHeight);setFreeCropWidth(nextWidth);setFreeCropHeight(nextHeight)}
     const left=west?drag.anchorX-nextWidth:drag.anchorX,top=north?drag.anchorY-nextHeight:drag.anchorY;
