@@ -68,6 +68,8 @@
 @media print{.privacy,.metadataNote,.grid>.panel:first-child,.resultLinks{display:none!important}.workspace{margin:0;padding:0;border:0;background:white}.grid{display:block;border:0;background:white}.panel{padding:0;background:white}.resultHero{background:white;color:black;border-color:black}.resultHero .resultLabel,.resultHero p{color:black}.preview{min-height:0;background:white}.actions{display:none}.encodedValue{background:white}}
 
 .downloadAction{margin-block:1.25rem}
+.errorRecovery{margin-block:1rem;padding:1rem;border-left:2px solid var(--color-error)}
+.errorRecovery .status{margin:0 0 .75rem;min-height:0}
 .actions .button.startOver,.button.startOver{flex:0 0 auto;min-height:44px;padding:.5rem .25rem;border-color:transparent;background:transparent;color:var(--color-muted);font-size:.8rem;text-decoration:underline;text-underline-offset:.2em}
 .button.startOver:is(:hover,:focus-visible):not(:disabled){background:transparent;color:var(--color-ink);border-color:transparent;transform:none}
 .downloadAction .button{display:inline-flex;align-items:center;justify-content:center;min-height:52px;min-width:12rem;padding:.9rem 1.5rem;font-size:1rem;font-weight:700;text-decoration:none}

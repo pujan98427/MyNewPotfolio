@@ -32,7 +32,7 @@ export function ToolPageLayout({title,description,path,children,variant="editori
       <p className="eyebrow">Next useful actions</p>
       <h2 id={`${tool.slug}-next-actions`}>Continue with another tool.</h2>
       <div>
-        {tool.documentationSlug&&<Link href={`/writing/${tool.documentationSlug}`} aria-label={`Read documentation for ${tool.title}`}>Read the documentation <ArrowUpRight aria-hidden="true" /></Link>}
+        {tool.documentationSlug&&<Link href={`/writing/${tool.documentationSlug}`} aria-label={`Guide for ${tool.title}`} className="tool-guide-link">Guide</Link>}
         <Link href="/lab">Find another tool <ArrowUpRight aria-hidden="true" /></Link>
       </div>
     </section>}
