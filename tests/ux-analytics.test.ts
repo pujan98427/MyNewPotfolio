@@ -1,0 +1,34 @@
+import assert from "node:assert/strict";
+import {registerGa4UxAnalytics,trackProductEvent} from "../lib/analytics/product-events.ts";
+
+const calls:unknown[][]=[];
+let consent=false;
+const stop=registerGa4UxAnalytics({measurementId:"G-TEST123",hasAnalyticsConsent:()=>consent,gtag:(...args)=>{calls.push(args)}});
+trackProductEvent("file_selected",{tool_name:"image-cropper"});
+assert.equal(calls.length,0,"no events before consent");
+consent=true;
+for(const name of ["tool_opened","file_selected","tool_processed","result_downloaded"] as const)trackProductEvent(name,{tool_name:"image-cropper"});
+trackProductEvent("tool_handoff_used",{from_tool:"image-cropper",to_tool:"image-resizer"});
+trackProductEvent("crop_resized",{tool_name:"image-cropper"});
+trackProductEvent("crop_ratio_selected",{tool_name:"image-cropper",ratio:"16:9"});
+assert.equal(calls.length,7);
+// Deliberately bypass static typing to verify the runtime privacy boundary.
+const tainted={tool_name:"image-cropper",filename:"private-photo.jpg",image_data:"secret",url:"blob:secret"};
+trackProductEvent("file_selected",tainted);
+assert.deepEqual(calls.at(-1),["event","file_selected",{send_to:"G-TEST123",tool_name:"image-cropper"}]);
+trackProductEvent("file_selected",{tool_name:"private-photo.jpg"});
+assert.equal(calls.length,8,"unknown identifiers cannot carry user data");
+consent=false;
+trackProductEvent("crop_resized",{tool_name:"image-cropper"});
+assert.equal(calls.length,8,"revocation takes effect immediately");
+stop();consent=true;
+trackProductEvent("file_selected",{tool_name:"image-cropper"});
+assert.equal(calls.length,8,"unregistered adapter is inert");
+const invalid=registerGa4UxAnalytics({measurementId:"",hasAnalyticsConsent:()=>true,gtag:(...args)=>{calls.push(args)}});
+trackProductEvent("file_selected",{tool_name:"image-cropper"});
+assert.equal(calls.length,8,"missing GA4 configuration is inert");
+invalid();
+const failing=registerGa4UxAnalytics({measurementId:"G-TEST123",hasAnalyticsConsent:()=>true,gtag:()=>{throw Error("offline")}});
+assert.doesNotThrow(()=>trackProductEvent("file_selected",{tool_name:"image-cropper"}));
+failing();
+console.log("UX analytics consent, event and privacy checks passed.");
