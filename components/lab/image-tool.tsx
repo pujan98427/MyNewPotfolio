@@ -10,7 +10,7 @@ import {validateImageFile} from "@/lib/lab/file-validation";
 import {imageResizePresets} from "@/data/image-resize-presets";
 import {compressionBucket,trackProductEvent,type AnalyticsFileFormat} from "@/lib/analytics/product-events";
 import {imageToolError} from "@/lib/lab/tool-errors";
-import {lockedCropScale} from "@/lib/lab/crop-geometry";
+import {clampCropExtent,lockedCropScale} from "@/lib/lab/crop-geometry";
 
 export type ImageMode="compress"|"resize"|"convert"|"crop";
 type ImageToolName="image-compressor"|"image-resizer"|"image-format-converter"|"image-cropper";
@@ -176,8 +176,8 @@ export function ImageTool({mode}:{mode:ImageMode}){
     const west=drag.corner.includes("w"),north=drag.corner.includes("n");
     const maxWidth=west?drag.anchorX:100-drag.anchorX,maxHeight=north?drag.anchorY:100-drag.anchorY;
     const pointerX=(clientX-bounds.left)/bounds.width*100,pointerY=(clientY-bounds.top)/bounds.height*100;
-    let nextWidth=Math.max(20,Math.min(maxWidth,west?drag.anchorX-pointerX:pointerX-drag.anchorX));
-    let nextHeight=Math.max(20,Math.min(maxHeight,north?drag.anchorY-pointerY:pointerY-drag.anchorY));
+    let nextWidth=clampCropExtent(west?drag.anchorX-pointerX:pointerX-drag.anchorX,maxWidth,bounds.width);
+    let nextHeight=clampCropExtent(north?drag.anchorY-pointerY:pointerY-drag.anchorY,maxHeight,bounds.height);
     if(ratio!=="free"){
       const scale=lockedCropScale(west?drag.anchorX-pointerX:pointerX-drag.anchorX,north?drag.anchorY-pointerY:pointerY-drag.anchorY,fittedCropWidth,fittedCropHeight,bounds.width,bounds.height,maxWidth,maxHeight);
       nextWidth=fittedCropWidth*scale;nextHeight=fittedCropHeight*scale;setCropScale(scale*100);
@@ -191,10 +191,10 @@ export function ImageTool({mode}:{mode:ImageMode}){
     if(!drag||!bounds?.width||!bounds.height)return;
     const x=(clientX-bounds.left)/bounds.width*100,y=(clientY-bounds.top)/bounds.height*100;
     let {left,top,width:nextWidth,height:nextHeight}=drag;
-    if(drag.edge==="left"){left=Math.max(0,Math.min(drag.left+drag.width-20,x));nextWidth=drag.left+drag.width-left}
-    if(drag.edge==="right")nextWidth=Math.max(20,Math.min(100-left,x-left));
-    if(drag.edge==="top"){top=Math.max(0,Math.min(drag.top+drag.height-20,y));nextHeight=drag.top+drag.height-top}
-    if(drag.edge==="bottom")nextHeight=Math.max(20,Math.min(100-top,y-top));
+    if(drag.edge==="left"){const right=drag.left+drag.width;nextWidth=clampCropExtent(right-x,right,bounds.width);left=right-nextWidth}
+    if(drag.edge==="right")nextWidth=clampCropExtent(x-left,100-left,bounds.width);
+    if(drag.edge==="top"){const bottom=drag.top+drag.height;nextHeight=clampCropExtent(bottom-y,bottom,bounds.height);top=bottom-nextHeight}
+    if(drag.edge==="bottom")nextHeight=clampCropExtent(y-top,100-top,bounds.height);
     setFreeCropWidth(nextWidth);setFreeCropHeight(nextHeight);
     setCropX(nextWidth>=100?0:left/(100-nextWidth)*100);setCropY(nextHeight>=100?0:top/(100-nextHeight)*100);
   };
