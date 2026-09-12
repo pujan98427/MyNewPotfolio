@@ -48,4 +48,21 @@ for(const [width,height] of [[1200,800],[800,1200],[101,79]]){
   }
  }
 }
-console.log(`Crop geometry checks passed: ${cases} display/source/output mappings.`);
+// Ratio resize helper coverage; this does not simulate DOM pointer events.
+let ratioCases=0;
+for(const [canvasWidth,canvasHeight] of [[640,480],[360,640]]){
+ for(const targetRatio of [1,16/9,4/5,9/16]){
+  const sourceRatio=canvasWidth/canvasHeight;
+  const fittedWidth=sourceRatio>targetRatio?targetRatio/sourceRatio*100:100;
+  const fittedHeight=sourceRatio>targetRatio?100:sourceRatio/targetRatio*100;
+  for(const requestedScale of [0,.4,.8,2]){
+   const scale=lockedCropScale(fittedWidth*requestedScale,fittedHeight*requestedScale,fittedWidth,fittedHeight,canvasWidth,canvasHeight,90,85);
+   const width=fittedWidth*scale,height=fittedHeight*scale;
+   near((width*canvasWidth)/(height*canvasHeight),targetRatio);
+   assert.ok(width<=90+1e-8 && height<=85+1e-8,"fixed crop stays inside available bounds");
+   assert.ok(width*canvasWidth/100>=32-1e-8 && height*canvasHeight/100>=32-1e-8,"both displayed dimensions meet minimum");
+   ratioCases++;
+  }
+ }
+}
+console.log(`Crop geometry checks passed: ${cases} display/source/output mappings; ${ratioCases} fixed-ratio resize cases.`);
