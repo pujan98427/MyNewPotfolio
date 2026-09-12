@@ -279,6 +279,13 @@ export function ImageTool({mode}:{mode:ImageMode}){
   const downloadBatchItem=(item:BatchResult)=>{if(!item.url||!item.name)return;trackProductEvent("result_downloaded",{tool_name:analyticsToolNames[mode]});const anchor=document.createElement("a");anchor.href=item.url;anchor.download=item.name;anchor.click()};
   const uploadTitle=imageState==="error"?"Choose another image":"Drop an image";
 
+  if(mode==="crop"&&!source)return <div className={styles.cropEmpty} aria-busy={imageState==="loading"}>
+    <FileDropZone accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" title="Drop an image here" actionLabel="Choose image" restrictions="JPG · PNG · WebP" disabled={imageState==="loading"} onFiles={files=>void chooseFiles(files)}/>
+    <p className={styles.privacy}>Processed in your browser.</p>
+    {imageState==="loading"&&<p role="status">Opening image…</p>}
+    {error&&<p className={styles.status} data-error role="alert">{error} Choose another image above.</p>}
+  </div>;
+
   return <div className={`${styles.workspace} ${mode==="crop"?styles.cropTool:mode==="compress"?styles.compressorTool:mode==="convert"?styles.converterTool:""}`} data-tool-processing={busy||undefined} aria-busy={busy}>
     <p className={styles.privacy}>Your image is processed locally in this browser and is not uploaded.</p>
     {mode!=="compress"&&<p className={styles.metadataNote}>Processed exports are newly encoded and may not keep camera, location or other embedded metadata. This can also reduce unintended personal information in the downloaded file.</p>}

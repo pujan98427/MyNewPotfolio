@@ -1,4 +1,6 @@
 .workspace{margin-top:1.5rem;border:0;background:transparent;padding:0}
+.cropEmpty{max-width:48rem;margin:0}
+.cropEmpty>.privacy{margin:.75rem 0 0;font-size:.82rem}
 @media(any-pointer:coarse){
   .cropCanvas .cropHandle{width:52px;height:52px}
   .cropCanvas .cropHandle::after{inset:19px}
