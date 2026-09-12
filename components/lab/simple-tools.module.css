@@ -166,7 +166,7 @@
 .grid>.panel:last-child{padding:clamp(1rem,2vw,1.5rem);background:var(--color-canvas)}
 .grid>.panel:last-child>h2{padding:0;border:0;font-family:inherit;font-size:1.125rem;font-weight:700;letter-spacing:0}
 .button{border-color:var(--color-brand-strong);background:var(--color-brand-strong);transition:color var(--duration-fast) var(--ease-smooth),background-color var(--duration-fast) var(--ease-smooth),border-color var(--duration-fast) var(--ease-smooth)}
-.button:is(:hover,:focus-visible):not(:disabled){border-color:var(--color-ink);background:var(--color-ink)}
+.button:is(:hover,:focus-visible):not(:disabled){border-color:var(--color-ink);background:var(--color-ink);color:var(--color-canvas)}
 .button:active:not(:disabled){transform:none}
 .button[data-quiet]{border-color:var(--color-ink);background:transparent}
 .resultHero{padding:0 0 1rem;border:0;background:transparent;color:var(--color-ink);animation:none}

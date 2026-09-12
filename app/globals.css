@@ -592,9 +592,11 @@ footer { display:flex; justify-content:space-between; border-top:1px solid var(-
 .tool-page>.tool-product-intro h1,.tool-page>.tool-product-intro>p:last-child { grid-column:1; margin:0; }
 .tool-page>.tool-product-intro h1 { max-width:18ch; font-size:clamp(3rem,4vw,4rem); line-height:.95; letter-spacing:-.045em; }
 .tool-page>.tool-product-intro>p:last-child { max-width:42rem; font-size:var(--text-lead); }
-.tool-page .breadcrumbs { margin-block:0 clamp(.75rem,1.5vw,1.25rem); padding-block:0; font-size:.75rem; letter-spacing:0; text-transform:none; }
+.tool-page .breadcrumbs { margin-block:0 clamp(1rem,1.5vw,1.5rem); padding-block:0; font-size:.75rem; letter-spacing:0; text-transform:none; }
 .tool-page .breadcrumbs ol,.tool-page .breadcrumbs li { gap:.4rem; }
 .tool-workspace { margin-top:clamp(1.25rem,2vw,2rem); }
+.tool-page:is(.tool-page-contrast-checker,.tool-page-clamp-generator,.tool-page-random-picker,.tool-page-svg-base64-converter)>.tool-workspace { margin-top:1rem; }
+.tool-page:is(.tool-page-contrast-checker,.tool-page-clamp-generator,.tool-page-random-picker)>.tool-workspace>div { margin-top:0; }
 .tool-workspace>.workspace { margin-top:0; }
 .tool-stage-heading { display:flex; align-items:center; gap:1rem; color:var(--color-muted); }
 .tool-stage-heading h2 { margin:0; font-family:var(--font-body); font-size:var(--text-label); font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
@@ -897,7 +899,7 @@ footer { display:flex; justify-content:space-between; border-top:1px solid var(-
 main>.tool-page,
 main:has(>.lab-directory)>.page-intro {
   margin-top:0;
-  padding-top:clamp(1.5rem,4vw,3rem);
+  padding-top:clamp(1.5rem,3vw,2.5rem);
   min-height:0;
 }
 main:has(>.lab-directory)>.page-intro { align-content:start; }
@@ -996,7 +998,7 @@ main:has(>.lab-directory)>.page-intro>p:last-child{grid-column:1;margin:0;font-s
 .lab-directory .lab-category article p{margin:.4rem 0 .25rem}
 /* One content-to-footer gap, whether the optional directory ad fills or not. */
 main:has(>.lab-directory) {
-  padding-bottom:clamp(2rem,4vw,4rem);
+  padding-bottom:clamp(3rem,4vw,4.5rem);
   border-bottom:0;
 }
 main>.lab-directory.section { padding-bottom:0; margin-bottom:0; border-bottom:0; }
