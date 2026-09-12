@@ -1,4 +1,4 @@
-.workspace{margin-top:clamp(3rem,7vw,7rem);border:1px solid var(--color-ink);background:color-mix(in srgb,var(--color-canvas) 84%,white);padding:clamp(1rem,4vw,3rem)}
+.workspace{margin-top:1.5rem;border:0;background:transparent;padding:0}
 @media(any-pointer:coarse){
   .cropCanvas .cropHandle{width:52px;height:52px}
   .cropCanvas .cropHandle::after{inset:19px}
@@ -158,13 +158,13 @@
 /* Editorial result hierarchy shared by the local utilities. */
 .workspace{border-inline:0;padding-inline:0}
 .grid{grid-template-columns:minmax(0,.84fr) minmax(0,1.16fr);border-inline:0}
-.grid>.panel:last-child{padding:clamp(1.25rem,4vw,3.5rem);background:color-mix(in srgb,var(--color-canvas) 96%,var(--color-brand))}
-.grid>.panel:last-child>h2{padding-left:1rem;border-left:4px solid var(--color-brand);font-size:clamp(2.2rem,4vw,4.5rem);letter-spacing:-.035em}
-.button{border-color:var(--color-brand-strong);background:var(--color-brand-strong);transition:color var(--duration-fast) var(--ease-smooth),background-color var(--duration-fast) var(--ease-smooth),border-color var(--duration-fast) var(--ease-smooth),transform var(--duration-fast) var(--ease-out)}
-.button:is(:hover,:focus-visible):not(:disabled){border-color:var(--color-ink);background:var(--color-ink);transform:translateY(-2px)}
+.grid>.panel:last-child{padding:clamp(1rem,2vw,1.5rem);background:var(--color-canvas)}
+.grid>.panel:last-child>h2{padding:0;border:0;font-family:inherit;font-size:1.125rem;font-weight:700;letter-spacing:0}
+.button{border-color:var(--color-brand-strong);background:var(--color-brand-strong);transition:color var(--duration-fast) var(--ease-smooth),background-color var(--duration-fast) var(--ease-smooth),border-color var(--duration-fast) var(--ease-smooth)}
+.button:is(:hover,:focus-visible):not(:disabled){border-color:var(--color-ink);background:var(--color-ink)}
 .button:active:not(:disabled){transform:none}
 .button[data-quiet]{border-color:var(--color-ink);background:transparent}
-.resultHero{padding:1rem 0;border-top:1px solid var(--color-border);background:transparent;color:var(--color-ink)}
+.resultHero{padding:0 0 1rem;border:0;background:transparent;color:var(--color-ink);animation:none}
 .resultHero .resultLabel{margin-bottom:.5rem;color:var(--color-brand-strong);letter-spacing:.06em}
 .resultHero .resultName{font-family:inherit;font-size:1.125rem;font-weight:700;line-height:1.4}
 .resultHero .resultMetric{margin-top:.5rem;font-size:1rem;font-weight:400}
@@ -174,8 +174,8 @@
 .resultHero .sizeChange span,.resultHero .sizeChange strong{font:inherit;color:var(--color-ink);line-height:1.5}
 .resultHero .sizeChange strong{font-weight:700}
 .resizeResult dd,.cropResult dd{font-family:inherit;font-size:1rem}
-@keyframes tool-result-reveal{from{opacity:0;transform:translateY(.75rem)}to{opacity:1;transform:none}}
-.batchTotals{border-top:3px solid var(--color-brand);background:color-mix(in srgb,var(--color-canvas) 22%,transparent);color:var(--color-canvas)}
-.batchTotals div{background:var(--color-ink)}
+.batchTotals{border-top:1px solid var(--color-border);background:transparent;color:var(--color-ink)}
+.batchTotals div{background:transparent}
+.status:empty{min-height:0;margin:0}
 @media(max-width:760px){.grid{grid-template-columns:1fr}.workspace{padding-inline:0}.grid>.panel:last-child{border-top:1px solid var(--color-ink)}}
 @media(prefers-reduced-motion:reduce){.button,.resultHero{animation:none;transition:none}.button:is(:hover,:focus-visible):not(:disabled){transform:none}}

@@ -54,7 +54,7 @@ export function trackProductEvent<Name extends keyof ProductEventMap>(name:Name,
 export function registerGa4UxAnalytics(options:{measurementId:string;hasAnalyticsConsent:()=>boolean;gtag:(command:"event",name:string,params:Record<string,string>)=>void}){
   const id=options.measurementId.trim();
   if(!/^G-[A-Z0-9]+$/.test(id))return ()=>{};
-  const tools=new Set(["image-compressor","image-resizer","image-format-converter","image-cropper","pdf-merger","pdf-compressor","qr-code-generator","random-picker","web-doctor","meta-tag-generator","open-graph-preview","seo-preview","svg-to-base64","contrast-checker","css-clamp-generator"]);
+  const tools=new Set(["image-compressor","image-resizer","image-format-converter","image-cropper","pdf-merger","pdf-compressor","qr-code-generator","random-picker","web-doctor","meta-generator","open-graph-preview","svg-base64-converter","contrast-checker","clamp-generator"]);
   const fields:Record<string,readonly string[]>={tool_opened:["tool_name"],file_selected:["tool_name"],tool_processed:["tool_name"],result_downloaded:["tool_name"],tool_handoff_used:["from_tool","to_tool"],crop_resized:["tool_name"],crop_ratio_selected:["tool_name","ratio"]};
   return registerProductAnalyticsAdapter({track(name,properties){
     if(!options.hasAnalyticsConsent()||!Object.hasOwn(fields,name))return;

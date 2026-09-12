@@ -606,13 +606,16 @@ footer { display:flex; justify-content:space-between; border-top:1px solid var(-
 .tool-flow li::after { content:"↓"; margin-left:auto; padding-right:.4rem; color:var(--color-brand-strong); }
 .tool-flow li:last-child::after { content:"→"; }
 @media(max-width:520px) { .tool-flow { grid-template-columns:1fr 1fr; } }
-.tool-next-actions { display:grid; grid-template-columns:minmax(10rem,.5fr) minmax(0,1.5fr); gap:1rem 2rem; margin-top:clamp(3rem,7vw,7rem); padding-block:clamp(2rem,4vw,4rem); border-block:1px solid var(--rule-hairline); }
+.tool-next-actions { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem 1.5rem; margin-top:2rem; padding-block:1rem; border-top:1px solid var(--rule-hairline); }
 .tool-next-actions h2,.tool-related>h2 { margin:0; max-width:18ch; font-family:var(--font-serif),serif; font-size:clamp(1.75rem,3vw,3rem); font-weight:400; line-height:1; }
+.tool-next-actions h2 { font-family:inherit; font-size:1rem; font-weight:600; line-height:1.5; }
 .tool-next-actions>div { grid-column:2; display:flex; flex-wrap:wrap; gap:1rem 2rem; }
 .tool-next-actions a { display:inline-flex; align-items:center; gap:.45rem; color:var(--color-link); font-size:.78rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; }
 .tool-next-actions svg { width:1rem; transition:transform var(--duration-fast) var(--ease-out); }
 .tool-next-actions a:is(:hover,:focus-visible) svg { transform:translate(3px,-3px); }
-.tool-related { margin-top:var(--spacing-section); }
+.tool-related { margin-top:clamp(2rem,4vw,3rem); }
+.tool-related .tool-switcher { margin-top:1rem; border-top:0; }
+.tool-related .tool-switcher a { grid-template-columns:minmax(0,1fr) auto; padding-block:.85rem; }
 .tool-related>.eyebrow { margin-bottom:1rem; }
 .qr-static-explanation { display:grid; grid-template-columns:minmax(10rem,.5fr) minmax(0,1.5fr); gap:1rem 2rem; margin-top:clamp(4rem,8vw,8rem); padding-top:clamp(2rem,4vw,4rem); border-top:1px solid var(--rule-hairline); }
 .qr-static-explanation h2 { margin:0; max-width:18ch; font-family:var(--font-serif),serif; font-size:clamp(2rem,4vw,4rem); font-weight:400; line-height:1; }
