@@ -25,11 +25,14 @@ Structured content lives in `data/`; shared presentation lives in `components/`.
 
 ## Styling rules
 
-Tailwind CSS v4 is the primary visual styling system. New components must use
-Tailwind utilities and existing theme tokens. Do not add new CSS Modules or
-component-level selectors to `app/globals.css`. Creating a new `.module.css`
-requires explicit justification and approval. Preserve the Tailwind import and
-theme; do not replace component CSS with `@apply` wrappers.
+Tailwind CSS v4 is the primary styling system. Use Tailwind utilities directly
+in JSX/TSX and use the existing `@theme` design tokens. Do not create new CSS
+Modules or add component-specific visual styling to `app/globals.css`.
+
+Custom CSS is limited to Tailwind theme/base setup, unavoidable complex SVG or
+keyframe animation, third-party integration styles that Tailwind cannot apply,
+and documented runtime-specific exceptions. Do not redesign components during
+styling migration.
 
 The visual-parity migration is not complete. Existing modules are temporarily
 allowlisted in `scripts/legacy-css-modules.json`; remove each entry when its

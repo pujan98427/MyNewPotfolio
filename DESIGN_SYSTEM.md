@@ -2,10 +2,11 @@
 
 ## Styling implementation policy
 
-Tailwind CSS v4 is the primary visual styling system. Do not add new CSS Modules.
-Do not add component-level selectors to `globals.css`. Use Tailwind utilities
-directly in JSX and existing theme tokens. This policy supersedes legacy
-component-selector patterns elsewhere in this document or codebase.
+Tailwind CSS v4 is the primary styling system. Use Tailwind utilities directly
+in JSX/TSX and use the existing `@theme` design tokens. Do not create new CSS
+Modules or add component-specific visual styling to `app/globals.css`. This
+policy supersedes legacy component-selector patterns elsewhere in this document
+or codebase.
 
 The current CSS Modules and global component rules remain temporarily during
 the staged migration; they are not evidence that migration is complete.
@@ -19,10 +20,11 @@ No redesign is permitted during conversion. Previously approved UI bug fixes
 must be isolated and documented separately. Visual baseline comparisons,
 interaction QA and accessibility QA are blocking requirements.
 
-Legitimate final CSS exceptions must be documented individually: Tailwind entry
-and theme, necessary universal base rules, complex signature SVG keyframes, and
-unavoidable third-party integration rules. These are permitted categories, not
-blanket approval to keep existing component styles.
+Legitimate final CSS exceptions must be documented individually: Tailwind
+theme/base setup, unavoidable complex SVG or keyframe animation, third-party
+integration styles where Tailwind cannot apply, and documented runtime-specific
+exceptions. These are permitted categories, not blanket approval to keep
+existing component styles. Do not redesign components during styling migration.
 
 The visual system is defined in Tailwind v4’s CSS-first `@theme` block at the top of `app/globals.css`. Components should consume these tokens or the small semantic utilities defined beside them; avoid adding one-off colours, breakpoints, or easing curves.
 

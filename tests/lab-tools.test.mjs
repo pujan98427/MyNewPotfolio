@@ -12,7 +12,8 @@ assert.equal(new Set(seoRecords.map(record=>record.title)).size,expected.length,
 assert.equal(new Set(seoRecords.map(record=>record.description)).size,expected.length,"new tool descriptions must be unique");
 assert.equal(new Set(seoRecords.map(record=>record.path)).size,expected.length,"new tool canonicals must be unique");
 const toolLayoutSource=readFileSync("components/lab/tool-page-layout.tsx","utf8");
-for(const contract of ["<h1>{title}</h1>","webApplicationStructuredData","<JsonLd data={schema}","getToolEducation","href=\"/lab\""])assert.ok(toolLayoutSource.includes(contract),contract);
+assert.match(toolLayoutSource,/<h1\b[^>]*>\{title\}<\/h1>/,"the shared tool layout must render its title as an H1");
+for(const contract of ["webApplicationStructuredData","<JsonLd data={schema}","getToolEducation","href=\"/lab\""])assert.ok(toolLayoutSource.includes(contract),contract);
 const sitemapSource=readFileSync("app/sitemap.ts","utf8");assert.match(sitemapSource,/\.\.\.labTools\.map\(tool=>entry\(`\/lab\/\$\{tool\.slug\}`/);
 const labDirectorySource=readFileSync("components/lab/lab-directory.tsx","utf8");assert.match(labDirectorySource,/tools\.map|categoryTools\.map/);
 assert.match(labDirectorySource,/id="lab-tool-directory"/);

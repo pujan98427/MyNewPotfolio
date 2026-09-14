@@ -15,6 +15,7 @@
     "test:status": "node tests/http-status.integration.mjs",
     "audit:links": "node scripts/audit-internal-links.mjs",
     "audit:css": "node scripts/audit-css.mjs",
+    "audit:tailwind": "node scripts/audit-tailwind.mjs",
     "check:styles": "node scripts/audit-css.mjs --check",
     "audit:links:production": "npm run build && npm run audit:links",
     "audit:performance": "node scripts/audit-performance.mjs",
