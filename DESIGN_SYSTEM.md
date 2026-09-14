@@ -1,5 +1,29 @@
 # Visual system
 
+## Styling implementation policy
+
+Tailwind CSS v4 is the primary visual styling system. Do not add new CSS Modules.
+Do not add component-level selectors to `globals.css`. Use Tailwind utilities
+directly in JSX and existing theme tokens. This policy supersedes legacy
+component-selector patterns elsewhere in this document or codebase.
+
+The current CSS Modules and global component rules remain temporarily during
+the staged migration; they are not evidence that migration is complete.
+Preserve exact visual values, fonts, responsive boundaries, interaction states,
+animation and print behaviour. Arbitrary utilities are appropriate for exact
+values without matching tokens. Runtime geometry/colours may use inline styles;
+static layout must not. Reusable React primitives or static class maps are
+preferred to repeated CSS selectors or `@apply` component wrappers.
+
+No redesign is permitted during conversion. Previously approved UI bug fixes
+must be isolated and documented separately. Visual baseline comparisons,
+interaction QA and accessibility QA are blocking requirements.
+
+Legitimate final CSS exceptions must be documented individually: Tailwind entry
+and theme, necessary universal base rules, complex signature SVG keyframes, and
+unavoidable third-party integration rules. These are permitted categories, not
+blanket approval to keep existing component styles.
+
 The visual system is defined in Tailwind v4’s CSS-first `@theme` block at the top of `app/globals.css`. Components should consume these tokens or the small semantic utilities defined beside them; avoid adding one-off colours, breakpoints, or easing curves.
 
 ## Visual direction

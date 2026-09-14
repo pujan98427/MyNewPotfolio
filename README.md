@@ -23,6 +23,24 @@ Quality checks: `npm run typecheck`, `npm run lint`, and `npm run build`.
 
 Structured content lives in `data/`; shared presentation lives in `components/`.
 
+## Styling rules
+
+Tailwind CSS v4 is the primary visual styling system. New components must use
+Tailwind utilities and existing theme tokens. Do not add new CSS Modules or
+component-level selectors to `app/globals.css`. Creating a new `.module.css`
+requires explicit justification and approval. Preserve the Tailwind import and
+theme; do not replace component CSS with `@apply` wrappers.
+
+The visual-parity migration is not complete. Existing modules are temporarily
+allowlisted in `scripts/legacy-css-modules.json`; remove each entry when its
+verified migration is finished. Run `npm run check:styles` to reject unexpected
+modules, stale allowlist entries and missing CSS imports. Run `npm run audit:css`
+for the broader inventory. Neither command proves visual parity.
+
+See [the migration inventory](docs/css-module-migration-inventory.md) and
+[design system](DESIGN_SYSTEM.md). Screenshots, interaction/accessibility QA and
+measured performance comparisons are required before declaring migration done.
+
 This repository contains only the production Next.js application and uses npm with `package-lock.json` as its package-manager lockfile. Historical URLs remain covered by permanent redirects even though the retired CRA and static/PHP source trees have been removed.
 
 ## Search Console deployment checklist

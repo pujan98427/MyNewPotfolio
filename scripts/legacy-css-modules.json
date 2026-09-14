@@ -1,0 +1,6 @@
+[
+  "components/contact/contact-chat.module.css",
+  "components/contact/contact-panel.module.css",
+  "components/lab/file-drop-zone.module.css",
+  "components/lab/simple-tools.module.css"
+]
