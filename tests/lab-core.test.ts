@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {PDFDocument} from "pdf-lib";
+import "./crop-geometry.test.ts";
 import {buildQrPayload,qrContrastRatio} from "../lib/lab/qr-core.ts";
 import {parsePickerChoices,secureShuffle,unbiasedRandomIndex} from "../lib/lab/random-core.ts";
 

@@ -13,7 +13,7 @@ function loadRoute({validation=()=>validContact,turnstile=async()=>({ok:true,mod
     "@/lib/contact/validation":{CONTACT_LIMITS:{body:12*1024},validateContactInput:validation},
     "@/lib/contact/rate-limit":{bestEffortContactRateLimit:()=>({allowed:true,retryAfter:0})},
     "@/lib/contact/resend":{contactDeliveryIsEnabled:deliveryEnabled,sendContactEmail:send},
-    "@/lib/contact/diagnostics":{logContactFailure:()=>{}},
+    "@/lib/contact/diagnostics":{logContactFailure:()=>{},logContactRejection:()=>{}},
     "@/lib/contact/turnstile":{verifyTurnstileToken:turnstile},
     "@/lib/contact/request-origin":{browserRequestOriginIsAllowed:()=>true},
   };
@@ -35,6 +35,10 @@ response=await loadRoute({send:async()=>{throw new Error("mock provider failure"
 assert.equal(response.status,502,"Resend failure");
 assert.deepEqual(await response.json(),{ok:false,code:"SEND_FAILED",message:"Message could not be sent right now."});
 
+response=await loadRoute({deliveryEnabled:()=>false})(request());
+assert.equal(response.status,503,"missing live delivery mode disables delivery");
+assert.equal((await response.json()).code,"DELIVERY_DISABLED");
+
 response=await loadRoute({validation:()=>{throw new Error("invalid");}})(request());
 assert.equal(response.status,400,"invalid input");
 assert.equal((await response.json()).code,"VALIDATION_ERROR");
@@ -42,6 +46,10 @@ assert.equal((await response.json()).code,"VALIDATION_ERROR");
 response=await loadRoute({turnstile:async()=>({ok:false,reason:"rejected"})})(request());
 assert.equal(response.status,400,"Turnstile failure");
 assert.equal((await response.json()).code,"SECURITY_CHECK_FAILED");
+
+response=await loadRoute()(request("{}",{origin:"https://malicious.example"}));
+assert.equal(response.status,403,"origin rejection");
+assert.equal((await response.json()).code,"REQUEST_REJECTED");
 
 response=await loadRoute()(request("{not-json"));
 assert.equal(response.status,400,"malformed request");

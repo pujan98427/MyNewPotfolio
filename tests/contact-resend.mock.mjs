@@ -29,6 +29,20 @@ try{
   process.env.RESEND_API_KEY="not-used-by-the-mock";
   process.env.CONTACT_FROM_EMAIL="contact@portfolio.test";
   process.env.CONTACT_TO_EMAIL="owner@example.test";
+  delete process.env.CONTACT_DELIVERY_MODE;
+  assert.equal(contactDeliveryIsEnabled(),false,"missing delivery mode is disabled outside production");
+  process.env.CONTACT_DELIVERY_MODE="live";
+  delete process.env.RESEND_API_KEY;
+  await assert.rejects(()=>sendContactEmail({email:"visitor@example.test",message:"Hello",topic:"website",requestId:"423e4567-e89b-42d3-a456-426614174000"}),/Contact delivery failed/,"missing API key is configuration failure");
+  process.env.RESEND_API_KEY="not-used-by-the-mock";
+  delete process.env.CONTACT_FROM_EMAIL;
+  await assert.rejects(()=>sendContactEmail({email:"visitor@example.test",message:"Hello",topic:"website",requestId:"523e4567-e89b-42d3-a456-426614174000"}, {send:async()=>({error:null})}),/Contact delivery failed/,"missing from address is configuration failure");
+  process.env.CONTACT_FROM_EMAIL="malformed-address";
+  await assert.rejects(()=>sendContactEmail({email:"visitor@example.test",message:"Hello",topic:"website",requestId:"623e4567-e89b-42d3-a456-426614174000"}, {send:async()=>({error:null})}),/Contact delivery failed/,"malformed from address is configuration failure");
+  process.env.CONTACT_FROM_EMAIL="contact@portfolio.test";
+  delete process.env.CONTACT_TO_EMAIL;
+  await assert.rejects(()=>sendContactEmail({email:"visitor@example.test",message:"Hello",topic:"website",requestId:"723e4567-e89b-42d3-a456-426614174000"}, {send:async()=>({error:null})}),/Contact delivery failed/,"missing recipient is configuration failure");
+  process.env.CONTACT_TO_EMAIL="owner@example.test";
   let delivery,sendCount=0;
   const mockEmailClient={send:async(message,options)=>{sendCount++;delivery={message,options};return {data:{id:"mock-only"},error:null};}};
   await sendContactEmail({email:"visitor@example.test",message:"A mocked delivery only.",topic:"website",requestId:"123e4567-e89b-42d3-a456-426614174000"},mockEmailClient);
@@ -39,6 +53,9 @@ try{
   assert.equal(delivery.message.replyTo,"visitor@example.test");
   assert.equal(delivery.message.to.includes("visitor@example.test"),false,"visitor is not an automatic-email recipient");
   assert.equal(delivery.options.idempotencyKey,"portfolio-contact/123e4567-e89b-42d3-a456-426614174000");
+  for(const [statusCode,label] of [[400,"Resend 4xx"],[500,"Resend 5xx"]]){
+    await assert.rejects(()=>sendContactEmail({email:"visitor@example.test",message:"Hello",topic:"website",requestId:`823e4567-e89b-42d3-a456-42661417400${statusCode===400?"1":"2"}`},{send:async()=>({error:{statusCode}})}),/Contact delivery failed/,label);
+  }
   const hostile='<script>alert("email")</script><img src=x onerror=alert(1)>& goodbye';
   await sendContactEmail({email:"visitor@example.test",message:hostile,topic:"other",requestId:"223e4567-e89b-42d3-a456-426614174000"},mockEmailClient);
   assert.equal(sendCount,2,"each separate enquiry still creates only one send");
