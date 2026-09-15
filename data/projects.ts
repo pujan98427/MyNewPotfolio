@@ -4,17 +4,12 @@ type ProjectBase={
 };
 
 export type EmployerProject=ProjectBase&{
-  ownership:"employer";relationship:"Employment contribution";url:string;internalPath?:never;
+  ownership:"employer";relationship:"Employment contribution";url:string;
 };
 
-export type PersonalProject=ProjectBase&{
-  ownership:"personal";relationship:"Personal project";internalPath:`/work/${string}`;url?:string;
-};
+export type Project=EmployerProject;
 
-export type Project=EmployerProject|PersonalProject;
-
-// Employer entries stay concise and external-only. Personal projects can opt into
-// a deliberately created internal case study through the PersonalProject type.
+// Employer entries stay concise and external-only.
 export const projects:readonly Project[]=[
   {ownership:"employer",slug:"tripcart",title:"TripCart",type:"Product interface contribution",stack:["Frontend development","Responsive UI"],image:"/projects/tripcart.png",imageWidth:902,imageHeight:768,imageAlt:"TripCart interface shown as an employment contribution",summary:"Frontend implementation and responsive interface work completed as part of an employment team.",relationship:"Employment contribution",period:"2021 — 2025",url:"https://tripcart.com/"},
   {ownership:"employer",slug:"coachpodium",title:"CoachPodium",type:"Product interface contribution",stack:["Vue","Product UI"],image:"/projects/coachpodium.png",imageWidth:1180,imageHeight:713,imageAlt:"CoachPodium interface shown as an employment contribution",summary:"Vue interface and reusable UI work completed as part of an employment team.",relationship:"Employment contribution",period:"2021 — 2025",url:"https://coachpodium.com/"},

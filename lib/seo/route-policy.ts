@@ -4,9 +4,8 @@
  * Dynamic guide, writing and Lab-tool URLs are added by app/sitemap.ts from
  * their structured data collections. Keeping both public route families and
  * exclusions here makes the indexing boundary reviewable.
- * Employer and client names belong only in factual Work/Experience history.
- * They must never generate search landing pages, case-study routes or sitemap
- * entries unless a future project is explicitly reclassified as personally owned.
+ * Employer and client names belong only in factual homepage Work/Experience
+ * history. No current /work/[slug] portfolio routes exist.
  */
 export const INDEXABLE_STATIC_ROUTES = [
   "/",

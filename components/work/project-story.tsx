@@ -1,15 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight,ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { useEffect,useRef,useState } from "react";
 import type { Project } from "@/data/projects";
 
-function ProjectDestination({project}:{project:Project}){
-  if(project.ownership==="personal")return <Link href={project.internalPath} aria-label={`Read the ${project.title} case study`}>View case study <ArrowRight aria-hidden="true" /></Link>;
-  return <a href={project.url} target="_blank" rel="nofollow noopener noreferrer" aria-label={`Visit the public ${project.title} website in a new tab`}>Visit site <ArrowUpRight aria-hidden="true" /></a>;
-}
+function ProjectDestination({project}:{project:Project}){return <a href={project.url} target="_blank" rel="nofollow noopener noreferrer" aria-label={`Visit the public ${project.title} website in a new tab`}>Visit site <ArrowUpRight aria-hidden="true" /></a>;}
 
 export function ProjectStory({projects}:{projects:readonly Project[]}){
   const [activeIndex,setActiveIndex]=useState(0),chaptersRef=useRef<(HTMLElement|null)[]>([]);

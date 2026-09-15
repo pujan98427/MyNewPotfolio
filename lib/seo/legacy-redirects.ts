@@ -6,6 +6,7 @@ export const LEGACY_REDIRECTS = [
   { source: "/about", destination: "/#about", permanent: true },
   { source: "/work", destination: "/#selected-work", permanent: true },
   { source: "/contact", destination: "/#contact", permanent: true },
+  { source: "/author/pujan-chapagain", destination: "/#about", permanent: true },
   { source: "/home", destination: "/", permanent: true },
   { source: "/index.html", destination: "/", permanent: true },
   { source: "/index.php", destination: "/", permanent: true },

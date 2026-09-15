@@ -49,9 +49,9 @@ This repository contains only the production Next.js application and uses npm wi
 ## Search Console deployment checklist
 
 1. Set `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` to the real HTML-tag verification token supplied by Google. Do not include the surrounding meta tag.
-2. Add and verify the preferred `https://poojanchapagain.com.np` property (or the corresponding Domain property) in Google Search Console.
-3. Submit `https://poojanchapagain.com.np/sitemap.xml`.
-4. Inspect the homepage, Web Doctor, Lab, Work, key case studies, and guides with URL Inspection.
+2. Add and verify the preferred `https://pujanchapagain.com.np` property (or the corresponding Domain property) in Google Search Console.
+3. Submit `https://pujanchapagain.com.np/sitemap.xml`.
+4. Inspect the homepage, Lab, important Lab tools, writing and guides with URL Inspection.
 5. Request indexing for the most important newly deployed pages and monitor indexing/canonical reports after migration.
 
 The application consistently uses the non-`www` HTTPS hostname. Production DNS/CDN configuration must also redirect HTTP and `www` requests to that origin.
