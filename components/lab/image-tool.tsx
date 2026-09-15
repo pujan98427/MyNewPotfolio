@@ -2,7 +2,6 @@
 
 import {useEffect,useRef,useState,type CSSProperties} from "react";
 import {useRouter} from "next/navigation";
-import styles from "./simple-tools.module.css";
 import {clearImageHandoff,saveImageHandoff,takeImageHandoff} from "@/lib/lab/image-handoff";
 import {revealResultIfNeeded,useMobileResultScroll} from "@/lib/lab/use-mobile-result-scroll";
 import {FileDropZone} from "@/components/lab/file-drop-zone";
@@ -29,6 +28,535 @@ const prettyBytes=(bytes:number)=>bytes<1024?`${bytes} B`:bytes<1048576?`${(byte
 const analyticsFormat=(mime:string):AnalyticsFileFormat=>mime==="image/jpeg"?"jpeg":mime==="image/png"?"png":mime==="image/webp"?"webp":mime==="image/avif"?"avif":mime==="image/gif"?"gif":mime==="image/bmp"?"bmp":"unknown";
 const safeImageBase=(name:string)=>name.replace(/\.[^.]+$/," ").trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,"-").replace(/\s+/g,"-").slice(0,90)||"image";
 const decodeImageFile=async(file:File)=>{const url=URL.createObjectURL(file),image=new window.Image();try{await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error("IMAGE_LOAD_FAILED"));image.src=url});await image.decode?.();return{url,width:image.naturalWidth,height:image.naturalHeight}}catch{URL.revokeObjectURL(url);throw new Error("IMAGE_LOAD_FAILED")}};
+
+const classes={
+  workspace:`
+    mt-6 border-0 bg-transparent p-0 px-0
+    max-[760px]:px-0 max-[760px]:py-4
+    print:m-0 print:border-0 print:bg-white print:p-0
+  `,
+  cropEmpty:`
+    m-0 max-w-3xl
+    [&>p]:mb-0 [&>p]:mt-3 [&>p]:text-[.82rem]
+  `,
+  privacy:`
+    mb-6 grid grid-cols-[minmax(8rem,.35fr)_minmax(0,1fr)]
+    gap-x-4 gap-y-2 border-y border-border py-[.9rem]
+    text-[.82rem] leading-[1.5] text-muted
+    before:font-bold before:text-ink before:content-['Private_by_default']
+    max-[760px]:grid-cols-1 print:hidden
+  `,
+  metadataNote:`
+    -mt-3 mb-6 max-w-[52rem] text-[.78rem] leading-[1.5] text-muted
+    print:hidden
+  `,
+  grid:`
+    image-tool-grid grid grid-cols-[minmax(0,.84fr)_minmax(0,1.16fr)]
+    gap-px border-y border-border bg-border
+    [&:has(.resizeControls)]:grid-cols-1
+    [&>.image-tool-panel:last-child]:bg-canvas
+    [&>.image-tool-panel:last-child]:p-[clamp(1rem,2vw,1.5rem)]
+    [&>.image-tool-panel:last-child>h2]:border-0
+    [&>.image-tool-panel:last-child>h2]:p-0
+    [&>.image-tool-panel:last-child>h2]:font-[inherit]
+    [&>.image-tool-panel:last-child>h2]:text-[1.125rem]
+    [&>.image-tool-panel:last-child>h2]:font-bold
+    [&>.image-tool-panel:last-child>h2]:tracking-normal
+    max-[760px]:grid-cols-1
+    max-[760px]:[&>.image-tool-panel:last-child]:border-t
+    max-[760px]:[&>.image-tool-panel:last-child]:border-ink
+    print:[&>.image-tool-panel:first-child]:hidden
+    print:block print:border-0 print:bg-white
+  `,
+  panel:`
+    image-tool-panel min-w-0 bg-canvas p-[clamp(1rem,3vw,2rem)]
+    [&>h2]:mb-5 [&>h2]:mt-0 [&>h2]:font-display
+    [&>h2]:text-[clamp(1.8rem,3vw,3rem)] [&>h2]:font-normal
+    max-[768px]:[&:has(.resultHero)>.image-tool-actions]:grid
+    max-[768px]:[&:has(.resultHero)>.image-tool-actions]:grid-cols-1
+    max-[768px]:[&:has(.resultHero)>.image-tool-actions>*]:min-h-12
+    max-[768px]:[&:has(.resultHero)>.image-tool-actions>*]:w-full
+    print:bg-white print:p-0
+  `,
+  field:`
+    mb-4 grid gap-2
+    [&>label]:text-[.72rem] [&>label]:font-bold
+    [&>label]:tracking-[.08em] [&>label]:uppercase
+    [&>input]:w-full [&>input]:border [&>input]:border-control-border
+    [&>input]:bg-transparent [&>input]:p-[.85rem] [&>input]:font-[inherit]
+    [&>input]:text-ink
+    [&>select]:w-full [&>select]:border [&>select]:border-control-border
+    [&>select]:bg-transparent [&>select]:p-[.85rem] [&>select]:font-[inherit]
+    [&>select]:text-ink
+    [&>textarea]:min-h-40 [&>textarea]:w-full [&>textarea]:resize-y
+    [&>textarea]:border [&>textarea]:border-control-border [&>textarea]:bg-transparent
+    [&>textarea]:p-[.85rem] [&>textarea]:font-[inherit] [&>textarea]:leading-[1.55]
+    [&>textarea]:text-ink
+  `,
+  row:`
+    flex flex-wrap items-end gap-3
+    [&>*]:basis-32 [&>*]:grow
+  `,
+  actions:`
+    image-tool-actions mt-5 flex flex-wrap gap-3
+    max-[760px]:[&>.image-tool-button]:flex-1
+    max-[760px]:[&>.image-start-over]:flex-none
+    print:hidden
+  `,
+  button:`
+    image-tool-button min-h-[2.8rem] cursor-pointer border border-brand-strong
+    bg-brand-strong px-4 py-3 font-[inherit] text-canvas
+    transition-[color,background-color,border-color]
+    duration-fast ease-smooth
+    hover:not-disabled:border-ink hover:not-disabled:bg-ink hover:not-disabled:text-canvas
+    focus-visible:not-disabled:border-ink focus-visible:not-disabled:bg-ink
+    focus-visible:not-disabled:text-canvas active:not-disabled:transform-none
+    data-[quiet]:border-ink data-[quiet]:bg-transparent data-[quiet]:text-ink
+    disabled:cursor-not-allowed disabled:opacity-50
+    motion-reduce:animate-none motion-reduce:transition-none
+  `,
+  startOver:`
+    image-tool-button image-start-over min-h-11 flex-none cursor-pointer
+    border border-transparent bg-transparent px-1 py-2 font-[inherit]
+    text-[.8rem] text-muted underline underline-offset-[.2em]
+    transition-[color,background-color,border-color] duration-fast ease-smooth
+    hover:not-disabled:transform-none hover:not-disabled:border-transparent
+    hover:not-disabled:bg-transparent hover:not-disabled:text-ink
+    focus-visible:not-disabled:transform-none focus-visible:not-disabled:border-transparent
+    focus-visible:not-disabled:bg-transparent focus-visible:not-disabled:text-ink
+    active:not-disabled:transform-none
+    disabled:cursor-not-allowed disabled:opacity-50
+    motion-reduce:transition-none
+  `,
+  changeImage:`
+    inline-flex min-h-11 cursor-pointer items-center justify-self-start
+    border-0 bg-transparent px-0 py-1 font-[inherit] text-[.85rem] text-ink
+    underline underline-offset-[.2em]
+    focus-visible:outline-2 focus-visible:outline-offset-[3px]
+    focus-visible:outline-focus-ring disabled:cursor-not-allowed disabled:opacity-50
+  `,
+  errorRecovery:`
+    my-4 border-l-2 border-error p-4
+    [&>.image-tool-status]:mb-3 [&>.image-tool-status]:mt-0
+    [&>.image-tool-status]:min-h-0
+  `,
+  inputHint:`
+    mt-3 mb-0 text-center text-[.78rem] text-muted
+  `,
+  preview:`
+    image-tool-preview grid min-h-56 place-items-center overflow-hidden
+    bg-[color-mix(in_srgb,var(--color-canvas)_88%,white)]
+    [&>canvas]:block [&>canvas]:max-h-[28rem] [&>canvas]:max-w-full
+    [&>canvas]:object-contain
+    [&>img]:block [&>img]:max-h-[28rem] [&>img]:max-w-full
+    [&>img]:object-contain [&>img]:[image-orientation:from-image]
+    [&>img[data-transparency=true]]:bg-canvas
+    [&>img[data-transparency=true]]:bg-[conic-gradient(color-mix(in_srgb,var(--color-ink)_7%,var(--color-canvas))_25%,transparent_0_50%,color-mix(in_srgb,var(--color-ink)_7%,var(--color-canvas))_0_75%,transparent_0)]
+    [&>img[data-transparency=true]]:[background-size:16px_16px]
+    max-[760px]:min-h-44 print:min-h-0 print:bg-white
+  `,
+  stats:`
+    mt-4 grid grid-cols-2 gap-px bg-border
+    [&>div]:bg-canvas [&>div]:p-[.8rem]
+    [&_dt]:text-[.68rem] [&_dt]:text-muted [&_dt]:uppercase
+    [&_dd]:mt-[.3rem] [&_dd]:mb-0
+  `,
+  status:`
+    image-tool-status mt-4 min-h-6 whitespace-pre-line text-muted
+    data-[error=true]:text-error empty:m-0 empty:min-h-0
+  `,
+  advanced:`
+    image-tool-advanced mt-4 border-t border-border pt-4
+    [&>summary]:cursor-pointer [&>summary]:font-bold
+    [&>div]:pt-4
+  `,
+  check:`
+    image-tool-check mt-1 flex min-h-11 items-center gap-[.65rem]
+    [&>input]:h-[1.15rem] [&>input]:w-[1.15rem]
+    [&>input]:accent-brand-strong
+  `,
+  batchPanel:`
+    batchPanel mt-6
+    [&>h3]:font-display [&>h3]:text-[clamp(1.5rem,3vw,2.4rem)]
+    [&>h3]:font-normal [&>p]:text-muted
+    [&>ol]:my-4 [&>ol]:list-none [&>ol]:p-0
+    [&_li]:grid [&_li]:grid-cols-[minmax(0,1fr)_auto_auto_auto]
+    [&_li]:items-center [&_li]:gap-3 [&_li]:border-t [&_li]:border-border
+    [&_li]:py-[.85rem] [&_li_div]:min-w-0
+    [&_li_div_small]:block [&_li_div_small]:wrap-anywhere
+    [&_li_strong]:block [&_li_strong]:wrap-anywhere
+    [&_li_small]:text-[.78rem] [&_li_small]:text-muted
+    [&_li_.image-tool-button]:m-0
+    max-[600px]:[&_li]:grid-cols-[minmax(0,1fr)_auto]
+    max-[600px]:[&_li>.image-tool-button]:col-span-full
+    max-[600px]:[&_li>.image-tool-button]:w-full
+  `,
+  batchStatus:`text-[.78rem] text-muted`,
+  batchTotals:`
+    grid grid-cols-2 gap-px border-t border-border bg-transparent text-ink
+    [&>div]:bg-transparent [&>div]:p-4
+    [&_dt]:text-[.68rem] [&_dt]:tracking-[.08em] [&_dt]:text-muted
+    [&_dt]:uppercase
+    [&_dd]:mt-[.35rem] [&_dd]:mb-0 [&_dd]:font-display [&_dd]:text-[1.7rem]
+  `,
+  originalSummary:`
+    originalSummary my-4 grid grid-cols-3 gap-px bg-border
+    [&>div]:bg-canvas [&>div]:p-[.9rem]
+    [&_dt]:text-[.66rem] [&_dt]:font-bold [&_dt]:tracking-[.08em]
+    [&_dt]:text-muted [&_dt]:uppercase
+    [&_dd]:mt-[.35rem] [&_dd]:mb-0
+    max-[480px]:grid-cols-1
+  `,
+  presets:`
+    image-tool-presets mt-4 grid gap-px border border-border bg-border p-0
+    [&>legend]:mb-[.6rem] [&>legend]:text-[.72rem] [&>legend]:font-bold
+    [&>legend]:tracking-[.08em] [&>legend]:uppercase
+    [&>label]:flex [&>label]:min-h-[3.25rem] [&>label]:cursor-pointer
+    [&>label]:items-center [&>label]:bg-canvas [&>label]:px-4 [&>label]:py-[.8rem]
+    [&>label:has(input:checked)]:bg-brand-soft
+    [&>label:has(input:checked)]:shadow-[inset_3px_0_var(--color-brand-strong)]
+    [&_input]:mr-[.7rem] [&_input]:accent-brand-strong
+    [&_span]:flex [&_span]:w-full [&_span]:justify-between [&_span]:gap-4
+    [&_span]:font-bold
+    [&_small]:text-[.65rem] [&_small]:tracking-[.06em]
+    [&_small]:text-brand-strong [&_small]:uppercase
+  `,
+  resizeControls:`
+    resizeControls mt-6 border-t-0 border-border pt-0
+    [&>h3]:my-4 [&>h3]:font-display
+    [&>h3]:text-[clamp(1.5rem,2.5vw,2.25rem)] [&>h3]:font-normal
+    min-[992px]:grid
+    min-[992px]:grid-cols-[minmax(0,1.2fr)_minmax(18rem,1fr)]
+    min-[992px]:items-start min-[992px]:gap-x-8
+    min-[992px]:[&>*]:col-start-2 min-[992px]:[&>*]:min-w-0
+    min-[992px]:[&>.resize-source-preview]:col-start-1
+    min-[992px]:[&>.resize-source-preview]:row-start-1
+    min-[992px]:[&>.resize-source-preview]:row-span-5
+    min-[992px]:[&>h3]:mt-3
+  `,
+  resizeSourcePreview:`
+    resize-source-preview mb-4 mt-0
+    [&>img]:block [&>img]:h-[clamp(10rem,26vh,16rem)] [&>img]:w-full
+    [&>img]:bg-[color-mix(in_srgb,var(--color-canvas)_88%,white)]
+    [&>img]:object-contain [&>img]:[image-orientation:from-image]
+    [&>img[data-transparency=true]]:bg-canvas
+    [&>img[data-transparency=true]]:bg-[conic-gradient(color-mix(in_srgb,var(--color-ink)_7%,var(--color-canvas))_25%,transparent_0_50%,color-mix(in_srgb,var(--color-ink)_7%,var(--color-canvas))_0_75%,transparent_0)]
+    [&>img[data-transparency=true]]:[background-size:16px_16px]
+    [&>figcaption]:mt-2 [&>figcaption]:text-[.8rem]
+    [&>figcaption]:text-muted [&>figcaption]:wrap-anywhere
+    min-[992px]:col-start-1 min-[992px]:row-start-1 min-[992px]:row-span-5
+    min-[992px]:m-0 min-[992px]:[&>img]:h-[clamp(16rem,40vh,28rem)]
+  `,
+  currentDimensions:`
+    flex items-baseline justify-between gap-4
+    [&>span]:text-[.7rem] [&>span]:font-bold [&>span]:tracking-[.1em]
+    [&>span]:text-muted [&>span]:uppercase
+    [&>strong]:text-[clamp(1.25rem,2.5vw,2rem)]
+  `,
+  modeSwitch:`
+    my-6 flex flex-wrap gap-px border border-border bg-border p-0
+    [&>legend]:mb-[.6rem] [&>legend]:text-[.72rem] [&>legend]:font-bold
+    [&>legend]:tracking-[.08em] [&>legend]:uppercase
+    [&>label]:basis-32 [&>label]:grow [&>label]:cursor-pointer
+    [&>label]:bg-canvas [&>label]:px-4 [&>label]:py-[.8rem]
+    [&>label:has(input:checked)]:bg-brand-soft
+    [&>label:has(input:checked)]:shadow-[inset_3px_0_var(--color-brand-strong)]
+    [&_input]:mr-[.55rem] [&_input]:accent-brand-strong
+  `,
+  quickSizes:`
+    mt-6 grid grid-cols-2 gap-px border border-border bg-border
+    [&>button]:flex [&>button]:min-h-[2.9rem] [&>button]:cursor-pointer
+    [&>button]:items-center [&>button]:justify-between [&>button]:gap-3
+    [&>button]:border-0 [&>button]:bg-canvas [&>button]:px-[.85rem]
+    [&>button]:py-[.7rem] [&>button]:font-[inherit] [&>button]:text-left
+    [&>button]:text-ink [&>button:hover]:bg-brand-soft
+    [&>button:focus-visible]:bg-brand-soft
+    [&_small]:text-[.68rem] [&_small]:text-muted
+  `,
+  upscaleControl:`
+    mt-4 border border-border p-4
+    [&>.image-tool-check]:m-0
+  `,
+  upscaleWarning:`
+    mt-3 mb-0 border-t border-border pt-3 leading-[1.5] text-ink
+  `,
+  resizeResult:`
+    mt-4 mb-0 grid grid-cols-2 gap-px bg-border
+    [&>div]:bg-canvas [&>div]:p-4 [&>div:last-child]:col-span-full
+    [&_dt]:text-[.68rem] [&_dt]:font-bold [&_dt]:tracking-[.1em]
+    [&_dt]:text-muted [&_dt]:uppercase
+    [&_dd]:mt-[.35rem] [&_dd]:mb-0 [&_dd]:font-[inherit] [&_dd]:text-base
+    [&_dd_span]:px-[.35rem] [&_dd_span]:text-brand-strong
+    max-[480px]:grid-cols-1 max-[480px]:[&>div:last-child]:col-auto
+  `,
+  cropResult:`
+    mt-4 mb-0 grid grid-cols-2 gap-px bg-border
+    [&>div]:bg-canvas [&>div]:p-4
+    [&_dt]:text-[.68rem] [&_dt]:font-bold [&_dt]:tracking-[.1em]
+    [&_dt]:text-muted [&_dt]:uppercase
+    [&_dd]:mt-[.35rem] [&_dd]:mb-0 [&_dd]:font-[inherit] [&_dd]:text-base
+    max-[480px]:grid-cols-1
+  `,
+  convertIntent:`
+    convertIntent mt-3
+    [&>h3]:my-3 [&>h3]:font-display [&>h3]:text-xl [&>h3]:font-normal
+  `,
+  intentChoices:`
+    grid grid-cols-3 gap-px border border-border bg-border
+    [&>button]:min-h-12 [&>button]:cursor-pointer [&>button]:border-0
+    [&>button]:bg-canvas [&>button]:p-[.65rem] [&>button]:text-center
+    [&>button]:font-[inherit] [&>button]:text-ink
+    [&>button:hover]:bg-brand-soft [&>button:focus-visible]:bg-brand-soft
+    [&>button[aria-pressed=true]]:bg-brand-soft
+    [&>button[aria-pressed=true]]:font-bold
+    [&>button[aria-pressed=true]]:shadow-[inset_3px_0_var(--color-brand-strong)]
+  `,
+  conversionSummary:`
+    mt-4 mb-0 grid gap-2
+    [&>div]:flex [&>div]:justify-between [&>div]:gap-4
+    [&_dt]:font-bold [&_dd]:m-0 [&_dd]:tabular-nums
+  `,
+  formatComparison:`
+    mt-6 border-t border-border pt-6
+    [&>summary]:cursor-pointer
+    [&>p]:text-muted
+    [&>dl]:mt-4 [&>dl]:mb-0
+    [&_dl>div]:flex [&_dl>div]:justify-between [&_dl>div]:gap-4
+    [&_dl>div]:border-t [&_dl>div]:border-border [&_dl>div]:py-[.8rem]
+    [&_dt]:font-extrabold [&_dd]:m-0
+    [&_strong]:ml-2 [&_strong]:text-[.68rem] [&_strong]:tracking-[.08em]
+    [&_strong]:text-brand-strong [&_strong]:uppercase
+  `,
+  cropWorkspace:`
+    cropWorkspace mt-0 min-w-0
+    [&>h3]:m-0 [&>h3]:font-display
+    [&>h3]:text-[clamp(1.5rem,2.5vw,2.25rem)] [&>h3]:font-normal
+    [&>p]:text-muted
+    min-[992px]:col-start-1 min-[992px]:row-start-3 min-[992px]:row-span-4
+  `,
+  cropCanvas:`
+    group/cropcanvas cropCanvas relative mx-auto mt-4
+    w-[min(100%,calc(68dvh*var(--crop-image-ratio,1)))] max-w-full
+    touch-none select-none overflow-hidden leading-none
+    bg-[color-mix(in_srgb,var(--color-canvas)_88%,white)]
+    [&>img]:block [&>img]:max-h-none [&>img]:max-w-none [&>img]:origin-center
+    [&>img]:object-contain [&>img]:transition-none [&>img]:[image-orientation:from-image]
+    [&>img[data-transparency=true]]:bg-canvas
+    [&>img[data-transparency=true]]:bg-[conic-gradient(color-mix(in_srgb,var(--color-ink)_7%,var(--color-canvas))_25%,transparent_0_50%,color-mix(in_srgb,var(--color-ink)_7%,var(--color-canvas))_0_75%,transparent_0)]
+    [&>img[data-transparency=true]]:[background-size:16px_16px]
+  `,
+  cropFrame:`
+    cropFrame absolute grid touch-none cursor-grab place-items-center
+    border-2 border-brand bg-transparent
+    shadow-[0_0_0_9999px_rgb(0_0_0/.45)]
+    active:cursor-grabbing
+    focus-visible:outline-[3px] focus-visible:outline-offset-[-6px]
+    focus-visible:outline-canvas
+    before:pointer-events-none before:absolute before:inset-0 before:opacity-0
+    before:content-['']
+    before:bg-[linear-gradient(to_right,transparent_calc(33.333%_-_.5px),rgb(255_255_255/.5)_calc(33.333%_-_.5px),rgb(255_255_255/.5)_calc(33.333%_+_.5px),transparent_calc(33.333%_+_.5px),transparent_calc(66.667%_-_.5px),rgb(255_255_255/.5)_calc(66.667%_-_.5px),rgb(255_255_255/.5)_calc(66.667%_+_.5px),transparent_calc(66.667%_+_.5px)),linear-gradient(to_bottom,transparent_calc(33.333%_-_.5px),rgb(255_255_255/.5)_calc(33.333%_-_.5px),rgb(255_255_255/.5)_calc(33.333%_+_.5px),transparent_calc(33.333%_+_.5px),transparent_calc(66.667%_-_.5px),rgb(255_255_255/.5)_calc(66.667%_-_.5px),rgb(255_255_255/.5)_calc(66.667%_+_.5px),transparent_calc(66.667%_+_.5px))]
+    active:before:opacity-100
+    group-has-[.cropHandle:active]/cropcanvas:before:opacity-100
+    [&>span]:pointer-events-none [&>span]:bg-ink [&>span]:px-[.6rem]
+    [&>span]:py-[.45rem] [&>span]:text-[.7rem] [&>span]:font-bold
+    [&>span]:leading-none [&>span]:tracking-[.05em] [&>span]:text-canvas
+    [&>span]:uppercase
+  `,
+  cropHandle:`
+    cropHandle absolute z-[2] size-11 min-h-0 -translate-x-1/2 -translate-y-1/2
+    touch-none cursor-nwse-resize border-0 bg-transparent p-0
+    after:absolute after:inset-[15px] after:rounded-full after:border-2
+    after:border-canvas after:bg-brand after:content-['']
+    after:shadow-[0_0_0_1px_var(--color-ink)]
+    hover:after:shadow-[0_0_0_2px_var(--color-ink)]
+    focus-visible:after:shadow-[0_0_0_2px_var(--color-ink)]
+    focus-visible:outline-2 focus-visible:outline-offset-[-7px]
+    focus-visible:outline-canvas
+    data-[corner=ne]:cursor-nesw-resize data-[corner=sw]:cursor-nesw-resize
+    data-[edge=top]:cursor-ns-resize data-[edge=bottom]:cursor-ns-resize
+    data-[edge=left]:cursor-ew-resize data-[edge=right]:cursor-ew-resize
+    data-[edge]:after:rounded-[2px]
+    data-[edge=top]:after:[inset:18px_12px]
+    data-[edge=bottom]:after:[inset:18px_12px]
+    data-[edge=left]:after:[inset:12px_18px]
+    data-[edge=right]:after:[inset:12px_18px]
+    [@media(any-pointer:coarse)]:size-[52px]
+    [@media(any-pointer:coarse)]:after:inset-[19px]
+    [@media(any-pointer:coarse)]:data-[edge=top]:after:[inset:22px_16px]
+    [@media(any-pointer:coarse)]:data-[edge=bottom]:after:[inset:22px_16px]
+    [@media(any-pointer:coarse)]:data-[edge=left]:after:[inset:16px_22px]
+    [@media(any-pointer:coarse)]:data-[edge=right]:after:[inset:16px_22px]
+  `,
+  cropControls:`
+    cropControls mt-0 min-w-0
+    max-[991px]:mt-6
+    min-[992px]:col-start-2 min-[992px]:row-start-3
+    [@media(any-pointer:coarse)]:[&_input[type=range]]:min-h-11
+    [@media(any-pointer:coarse)]:[&_input[type=range]]:touch-pan-y
+  `,
+  cropPresets:`
+    mb-4 mt-0 flex flex-wrap gap-px border border-border bg-border p-0
+    [&>legend]:mb-[.6rem] [&>legend]:text-[.72rem] [&>legend]:font-bold
+    [&>legend]:tracking-[.08em] [&>legend]:uppercase
+    [&>label]:min-h-[2.8rem] [&>label]:basis-28 [&>label]:grow
+    [&>label]:cursor-pointer [&>label]:bg-canvas [&>label]:p-3
+    [&>label:has(input:checked)]:bg-brand-soft
+    [&>label:has(input:checked)]:shadow-[inset_3px_0_var(--color-brand-strong)]
+    [&_input]:accent-brand-strong
+    max-[991px]:[&>label]:min-h-11 max-[991px]:[&>label]:basis-16
+    max-[991px]:[&>label]:px-2 max-[991px]:[&>label]:py-[.65rem]
+    max-[991px]:[&>label]:text-center
+  `,
+  numericCrop:`
+    my-4 border border-border p-4
+    [&>legend]:px-[.35rem] [&>legend]:text-[.72rem] [&>legend]:font-bold
+    [&>legend]:tracking-[.08em] [&>legend]:uppercase
+    [&>p]:mb-4 [&>p]:mt-0 [&>p]:text-[.85rem]
+    [&>p]:leading-[1.5] [&>p]:text-muted
+  `,
+  downloadAction:`
+    my-5
+    [&>.image-tool-button]:inline-flex [&>.image-tool-button]:min-h-[52px]
+    [&>.image-tool-button]:min-w-48 [&>.image-tool-button]:items-center
+    [&>.image-tool-button]:justify-center [&>.image-tool-button]:px-6
+    [&>.image-tool-button]:py-[.9rem] [&>.image-tool-button]:text-base
+    [&>.image-tool-button]:font-bold [&>.image-tool-button]:no-underline
+    max-[768px]:grid max-[768px]:grid-cols-1
+    max-[768px]:[&>*]:min-h-12 max-[768px]:[&>*]:w-full
+    max-[760px]:[&>.image-tool-button]:min-w-0
+    max-[760px]:[&>.image-tool-button]:w-full
+  `,
+  resultHero:`
+    resultHero mb-4 border-0 bg-transparent pb-4 text-ink
+    motion-reduce:animate-none
+    [&>p]:mt-2 [&>p]:mb-0 [&>p]:leading-[1.5] [&>p]:text-muted
+    print:bg-white print:text-black
+    print:[&>.image-tool-result-label]:text-black print:[&>p]:text-black
+  `,
+  resultLabel:`
+    image-tool-result-label mb-2 block text-[.7rem] font-extrabold
+    tracking-[.06em] text-brand-strong uppercase
+  `,
+  resultName:`
+    block wrap-anywhere font-[inherit] text-[1.125rem] font-bold leading-[1.4]
+  `,
+  resultLinks:`
+    image-tool-result-links mt-6 flex flex-wrap gap-x-5 gap-y-3
+    border-t border-border pt-4
+    [&>span]:basis-full [&>span]:text-[.68rem] [&>span]:font-bold
+    [&>span]:tracking-[.1em] [&>span]:text-muted [&>span]:uppercase
+    [&>button]:cursor-pointer [&>button]:border-0 [&>button]:bg-transparent
+    [&>button]:p-0 [&>button]:font-[inherit] [&>button]:font-bold
+    [&>button]:text-link [&>button]:after:content-['_→']
+    [&>button:hover]:text-link-hover [&>button:focus-visible]:text-link-hover
+    [&>button:disabled]:cursor-wait [&>button:disabled]:opacity-[.55]
+    print:hidden
+  `,
+  imageContinue:`
+    mt-2 items-center gap-x-3 gap-y-0 border-t-0 pt-2
+    [&>span]:basis-auto [&>span]:text-[.8rem] [&>span]:font-normal
+    [&>span]:tracking-normal [&>span]:normal-case
+    [&>button]:min-h-11 [&>button]:text-[.85rem] [&>button]:font-semibold
+    [&>button]:transition-colors [&>button]:duration-fast
+    [&>button]:ease-[var(--ease-out)] [&>button]:after:content-none
+    [&>button:hover]:underline [&>button:hover]:underline-offset-[.2em]
+    [&>button:focus-visible]:underline
+    [&>button:focus-visible]:underline-offset-[.2em]
+    [&>button:focus-visible]:outline-2
+    [&>button:focus-visible]:outline-offset-[3px]
+    [&>button:focus-visible]:outline-brand-strong
+    [&>button:active:not(:disabled)]:text-ink
+    motion-reduce:[&>button]:transition-none
+  `,
+  comparison:`
+    mt-[clamp(2rem,5vw,4rem)] border-t border-border
+    pt-[clamp(1.5rem,3vw,2.5rem)]
+    [&>h2]:m-0 [&>h2]:font-display
+    [&>h2]:text-[clamp(1.8rem,3vw,3rem)] [&>h2]:font-normal
+    [&>p]:max-w-[42rem] [&>p]:text-muted
+    [&>div]:mt-6 [&>div]:grid [&>div]:grid-cols-2 [&>div]:gap-px
+    [&>div]:bg-border
+    [&_figure]:m-0 [&_figure]:min-w-0 [&_figure]:bg-canvas [&_figure]:p-4
+    [&_figcaption]:mb-3 [&_figcaption]:text-[.7rem]
+    [&_figcaption]:font-bold [&_figcaption]:tracking-[.1em]
+    [&_figcaption]:uppercase
+    [&_img]:block [&_img]:h-auto [&_img]:max-h-[34rem] [&_img]:w-full
+    [&_img]:bg-[color-mix(in_srgb,var(--color-canvas)_88%,white)]
+    [&_img]:object-contain [&_img]:object-center [&_img]:[image-orientation:from-image]
+    [&_img[data-transparency=true]]:bg-canvas
+    [&_img[data-transparency=true]]:bg-[conic-gradient(color-mix(in_srgb,var(--color-ink)_7%,var(--color-canvas))_25%,transparent_0_50%,color-mix(in_srgb,var(--color-ink)_7%,var(--color-canvas))_0_75%,transparent_0)]
+    [&_img[data-transparency=true]]:[background-size:16px_16px]
+    max-[760px]:[&>div]:grid-cols-1 max-[760px]:[&_figure]:p-3
+    max-[760px]:[&_img]:max-h-none
+  `,
+  compressorTool:`
+    image-tool-compressor
+    [&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-preview]:mt-4
+    [&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-preview]:min-h-0
+    [&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-preview]:max-h-28
+    [&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-preview>img]:h-auto
+    [&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-preview>img]:max-h-28
+    [&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-preview>img]:w-auto
+    [&_.image-tool-presets]:mt-4
+    [&:not(:has(.originalSummary)):not(:has(.batchPanel))>.image-tool-grid]:grid-cols-1
+    [&:not(:has(.originalSummary)):not(:has(.batchPanel))>.image-tool-grid>.image-tool-panel:last-child:not(:has([data-error=true]))]:hidden
+  `,
+  converterTool:`
+    image-tool-converter
+    [&>.image-tool-grid]:grid-cols-1
+    [&_.image-tool-preview]:min-h-0 [&_.image-tool-preview]:mt-3
+    [&_.image-tool-preview>img]:h-[clamp(8rem,22vh,12rem)]
+    [&_.image-tool-preview>img]:w-full
+    [&_.convertIntent]:mt-3
+    [&_.convertIntent>h3]:my-3 [&_.convertIntent>h3]:text-xl
+    [&_.image-tool-status:empty]:m-0 [&_.image-tool-status:empty]:min-h-0
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)]:grid
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)]:grid-cols-[minmax(0,1.2fr)_minmax(18rem,1fr)]
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)]:items-start
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)]:gap-x-8
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)>*]:col-start-2
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)>*]:min-w-0
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)>h2]:col-span-full
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)>h2]:justify-self-start
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)>.image-start-over]:col-span-full
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)>.image-start-over]:justify-self-start
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)>.image-tool-preview]:col-start-1
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)>.image-tool-preview]:row-start-3
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child:has(.convertIntent)>.image-tool-preview]:row-span-4
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-preview>img]:h-[clamp(16rem,40vh,28rem)]
+  `,
+  cropTool:`
+    image-tool-crop
+    [&>.image-tool-grid]:grid-cols-1
+    [&>.image-tool-grid>.image-tool-panel:first-child]:p-[clamp(.75rem,2vw,1.5rem)]
+    [&_.cropWorkspace]:mt-0 [&_.cropWorkspace]:min-w-0
+    [&_.cropControls]:mt-0 [&_.cropControls]:min-w-0
+    max-[991px]:[&>.image-tool-grid>.image-tool-panel:first-child]:block
+    max-[991px]:[&>.image-tool-grid>.image-tool-panel:first-child]:px-0
+    max-[991px]:[&_.cropControls]:mt-6
+    max-[991px]:[&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-actions]:flex-col
+    max-[991px]:[&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-actions>.image-tool-button]:min-h-12
+    max-[991px]:[&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-actions>.image-tool-button]:w-full
+    max-[991px]:[&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-actions>.image-tool-button]:flex-auto
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child]:grid
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child]:grid-cols-[minmax(0,7fr)_minmax(15rem,3fr)]
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child]:items-start
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child]:gap-x-[clamp(1.5rem,3vw,3rem)]
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>*]:col-span-full
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>.cropWorkspace]:col-start-1
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>.cropWorkspace]:row-start-3
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>.cropWorkspace]:row-span-4
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>.cropControls]:col-start-2
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>.cropControls]:row-start-3
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-advanced]:col-start-2
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-advanced]:row-start-4
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-actions]:col-start-2
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-actions]:row-start-5
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-status:last-child]:col-start-2
+    min-[992px]:[&>.image-tool-grid>.image-tool-panel:first-child>.image-tool-status:last-child]:row-start-6
+  `,
+} as const;
+
 
 export function ImageTool({mode}:{mode:ImageMode}){
   const resultRef=useRef<HTMLElement>(null);
@@ -280,42 +808,42 @@ export function ImageTool({mode}:{mode:ImageMode}){
   const downloadBatchItem=(item:BatchResult)=>{if(!item.url||!item.name)return;trackProductEvent("result_downloaded",{tool_name:analyticsToolNames[mode]});const anchor=document.createElement("a");anchor.href=item.url;anchor.download=item.name;anchor.click()};
   const uploadTitle=imageState==="error"?"Choose another image":"Drop an image";
 
-  if(mode==="crop"&&!source)return <div className={styles.cropEmpty} aria-busy={imageState==="loading"}>
+  if(mode==="crop"&&!source)return <div className={classes.cropEmpty} aria-busy={imageState==="loading"}>
     <FileDropZone accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" title="Drop an image here" actionLabel="Choose image" restrictions="JPG · PNG · WebP" disabled={imageState==="loading"} onFiles={files=>void chooseFiles(files)}/>
-    <p className={styles.privacy}>Processed in your browser.</p>
+    <p className={classes.privacy}>Processed in your browser.</p>
     {imageState==="loading"&&<p role="status">Opening image…</p>}
-    {error&&<p className={styles.status} data-error role="alert">{error} Choose another image above.</p>}
+    {error&&<p className={classes.status} data-error role="alert">{error} Choose another image above.</p>}
   </div>;
 
-  return <div className={`${styles.workspace} ${mode==="crop"?styles.cropTool:mode==="compress"?styles.compressorTool:mode==="convert"?styles.converterTool:""}`} data-tool-processing={busy||undefined} aria-busy={busy}>
-    {mode!=="crop"&&<p className={styles.privacy}>Your image is processed locally in this browser and is not uploaded.</p>}
-    {mode!=="compress"&&mode!=="crop"&&<p className={styles.metadataNote}>Processed exports are newly encoded and may not keep camera, location or other embedded metadata. This can also reduce unintended personal information in the downloaded file.</p>}
-    <div className={styles.grid}>
-      <section className={styles.panel}>{mode!=="compress"&&mode!=="crop"&&<h2>Choose an image</h2>}
-        {mode==="crop"&&source?<><input ref={changeImageInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" hidden onChange={event=>{const next=event.currentTarget.files?.[0];event.currentTarget.value="";if(next)void chooseFiles([next])}}/><button type="button" className={styles.changeImage} disabled={busy} onClick={()=>changeImageInputRef.current?.click()}>Change image</button></>:mode==="convert"&&source?<button type="button" className={`${styles.button} ${styles.startOver}`} data-quiet disabled={busy} onClick={clear}>Start over</button>:<><FileDropZone accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" title={uploadTitle} restrictions={`PNG, JPEG, WebP, GIF, BMP or AVIF · maximum 25 MB${mode==="compress"?" each · up to 10 images":""}`} multiple={mode==="compress"} disabled={busy} onFiles={files=>void chooseFiles(files)}/></>}
-        {error&&<div className={styles.errorRecovery}><p className={styles.status} data-error role="alert">{error}</p><input ref={recoveryInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" hidden onChange={event=>{const next=event.currentTarget.files?.[0];event.currentTarget.value="";if(next)void chooseFiles([next])}}/><button type="button" className={styles.button} disabled={busy} onClick={()=>recoveryInputRef.current?.click()}>Choose another image</button></div>}
-        {mode==="compress"&&!source&&!batch.length&&<p className={styles.inputHint}>You can also paste an image or choose several files.</p>}
-        {mode==="compress"&&batch.length>0&&<section className={styles.batchPanel} aria-labelledby="batch-images-heading"><h3 id="batch-images-heading">{batch.length} images ready</h3><p>Balanced WebP compression is applied locally. Each original is kept when it is already smaller.</p><ol>{batch.map((item,index)=><li key={`${item.file.name}-${item.file.lastModified}-${index}`}><div><strong>{item.file.name}</strong><small>{prettyBytes(item.file.size)}</small></div><span className={styles.batchStatus}>{item.status==="queued"?"Waiting":item.status==="processing"?"Processing…":item.status==="error"?item.message:"Done"}</span>{item.status==="done"&&<><small>{prettyBytes(item.blob?.size??0)}</small><button type="button" className={styles.button} data-quiet onClick={()=>downloadBatchItem(item)}>Download</button></>}</li>)}</ol><dl className={styles.batchTotals}><div><dt>Total original</dt><dd>{prettyBytes(batchOriginalSize)}</dd></div><div><dt>Total output</dt><dd>{batchComplete?prettyBytes(batchOutputSize):"—"}</dd></div></dl><div className={styles.actions}><button type="button" className={styles.button} onClick={()=>void processBatch()} disabled={busy||batchComplete}>{busy?"Processing…":batchComplete?"Batch complete":"Compress images"}</button><button type="button" className={`${styles.button} ${styles.startOver}`} data-quiet onClick={clear} disabled={busy}>Start over</button></div><p className={styles.status} role="status" aria-live="polite">{busy?`${batch.filter(item=>item.status==="done"||item.status==="error").length} of ${batch.length} finished.`:batchComplete?"Batch processing complete. Download each result below.":""}</p></section>}
-        {source&&<>{mode!=="crop"&&mode!=="resize"&&<div className={styles.preview}><img src={source} alt="Selected image preview" width={sourceWidth||1} height={sourceHeight||1} onLoad={onLoad} onError={onSourcePreviewError}/></div>}{mode!=="resize"&&mode!=="crop"&&<p>{file?.name}</p>}{mode==="compress"&&file&&<><dl className={styles.originalSummary}><div><dt>Original</dt><dd>{prettyBytes(file.size)}</dd></div><div><dt>Dimensions</dt><dd>{width} × {height}</dd></div><div><dt>Type</dt><dd>{(extensions[file.type]??file.type.replace("image/","")).toUpperCase()}</dd></div></dl><fieldset className={styles.presets}><legend>Choose the result you prefer</legend><label><input type="radio" name="compression-preset" checked={compressionPreset==="smaller"} onChange={()=>choosePreset("smaller")}/><span>Smaller file</span></label><label><input type="radio" name="compression-preset" checked={compressionPreset==="balanced"} onChange={()=>choosePreset("balanced")}/><span>Balanced <small>Recommended</small></span></label><label><input type="radio" name="compression-preset" checked={compressionPreset==="quality"} onChange={()=>choosePreset("quality")}/><span>Keep quality</span></label></fieldset></>}
-{mode==="resize"&&<section className={styles.resizeControls} aria-labelledby="custom-image-size"><figure className={styles.resizeSourcePreview}><img src={source} alt="Original image preview" width={sourceWidth||1} height={sourceHeight||1} onLoad={onLoad} onError={onSourcePreviewError}/><figcaption>{file?.name}</figcaption></figure><div className={styles.currentDimensions}><span>Current</span><strong>{sourceWidth} × {sourceHeight}</strong></div><h3 id="custom-image-size">New size</h3>{resizeMode==="percentage"?<div className={styles.field}><label htmlFor="resize-percentage">New size · {resizePercentage}%</label><input id="resize-percentage" type="range" min="10" max="200" step="5" value={resizePercentage} onChange={event=>applyPercentage(Number(event.target.value))}/><small>{width} × {height} px</small></div>:<><div className={styles.row}><div className={styles.field}><label htmlFor="image-width">Width</label><input id="image-width" type="number" min="1" max="12000" value={width||""} onChange={event=>{const next=Number(event.target.value);setWidth(next);if(keepProportions&&sourceWidth)setHeight(Math.round(next*sourceHeight/sourceWidth))}}/></div><div className={styles.field}><label htmlFor="image-height">Height</label><input id="image-height" type="number" min="1" max="12000" value={keepProportions?"":height||""} placeholder={keepProportions?`Auto (${height}px)`:"Height"} readOnly={keepProportions} onChange={event=>setHeight(Number(event.target.value))}/></div></div><label className={styles.check}><input type="checkbox" checked={keepProportions} onChange={event=>{const checked=event.target.checked;setKeepProportions(checked);if(checked&&sourceWidth)setHeight(Math.round(width*sourceHeight/sourceWidth))}}/> Keep proportions</label></>}<details className={styles.advanced}><summary>More options</summary><fieldset className={styles.modeSwitch}><legend>Resize by</legend><label><input type="radio" name="resize-mode" checked={resizeMode==="pixels"} onChange={()=>setResizeMode("pixels")}/> Pixels</label><label><input type="radio" name="resize-mode" checked={resizeMode==="percentage"} onChange={()=>applyPercentage(resizePercentage)}/> Percentage</label></fieldset><div className={styles.quickSizes} aria-label="Quick resize choices"><button type="button" onClick={()=>applyPercentage(50)}>50% smaller</button><button type="button" onClick={()=>applyPercentage(75)}>25% smaller</button>{imageResizePresets.map(preset=><button type="button" key={preset.id} onClick={()=>applyResizePreset(preset)}>{preset.label}<small>{preset.width} × {preset.height}</small></button>)}</div><p className={styles.inputHint}>Percentage choices keep the original proportions. Fixed dimension presets are general-purpose sizes, not official platform requirements, and may change the image shape. Use the Crop tool when exact framing matters.</p></details></section>}
-{mode==="crop"&&<section className={styles.cropWorkspace} aria-labelledby="visual-crop-heading"><h3 id="visual-crop-heading">Adjust the crop</h3><p id="crop-keyboard-help">Drag inside to move. Drag a corner to resize. Free crops also have edge handles. Use arrow keys on the focused crop to move it, or on a handle to resize. Hold Shift for larger steps.</p><div className={styles.cropCanvas} ref={cropCanvasRef} style={cropCanvasStyle}><img src={source} alt="Image with adjustable crop area" width={sourceWidth||1} height={sourceHeight||1} style={cropImageStyle} onLoad={onLoad} onError={onSourcePreviewError}/><div className={styles.cropFrame} style={cropStyle} role="slider" tabIndex={0} aria-label="Crop area position" aria-describedby="crop-keyboard-help" aria-valuemin={0} aria-valuemax={100} aria-valuetext={`Horizontal ${Math.round(cropX)}%, vertical ${Math.round(cropY)}%`} aria-valuenow={Math.round((cropX+cropY)/2)} onPointerDown={event=>{if(event.button!==0)return;event.preventDefault();cropDraggingRef.current={pointerId:event.pointerId,clientX:event.clientX,clientY:event.clientY,left:cropLeft,top:cropTop};event.currentTarget.setPointerCapture(event.pointerId)}} onPointerMove={event=>{if(cropDraggingRef.current)moveCrop(event)}} onPointerUp={event=>{cropDraggingRef.current=null;if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId)}} onPointerCancel={()=>{cropDraggingRef.current=null}} onLostPointerCapture={()=>{cropDraggingRef.current=null}} onKeyDown={event=>{const amount=event.shiftKey?10:2;if(event.key==="ArrowLeft")setCropX(current=>Math.max(0,current-amount));else if(event.key==="ArrowRight")setCropX(current=>Math.min(100,current+amount));else if(event.key==="ArrowUp")setCropY(current=>Math.max(0,current-amount));else if(event.key==="ArrowDown")setCropY(current=>Math.min(100,current+amount));else return;event.preventDefault()}}><span>Drag to position</span></div>{(["nw","ne","sw","se"] as const).map(corner=><button key={corner} type="button" className={styles.cropHandle} data-corner={corner} style={{left:`${cropLeft+(corner.includes("w")?0:cropWidthPercent)}%`,top:`${cropTop+(corner.includes("n")?0:cropHeightPercent)}%`}} aria-label={`Resize crop from ${corner.includes("n")?"top":"bottom"} ${corner.includes("w")?"left":"right"} corner`} onPointerDown={event=>{event.preventDefault();cropResizeRef.current={corner,anchorX:cropLeft+(corner.includes("w")?cropWidthPercent:0),anchorY:cropTop+(corner.includes("n")?cropHeightPercent:0)};event.currentTarget.setPointerCapture(event.pointerId)}} onPointerMove={event=>{if(event.currentTarget.hasPointerCapture(event.pointerId))resizeCrop(event.clientX,event.clientY)}} onPointerUp={event=>{cropResizeRef.current=null;if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId)}} onPointerCancel={()=>{cropResizeRef.current=null}} onLostPointerCapture={()=>{cropResizeRef.current=null}} onKeyDown={event=>{if(!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(event.key))return;event.preventDefault();const bounds=cropCanvasRef.current?.getBoundingClientRect();if(!bounds)return;cropResizeRef.current={corner,anchorX:cropLeft+(corner.includes("w")?cropWidthPercent:0),anchorY:cropTop+(corner.includes("n")?cropHeightPercent:0)};const step=event.shiftKey?5:1;resizeCrop(bounds.left+(cropLeft+(corner.includes("w")?0:cropWidthPercent)+(event.key==="ArrowLeft"?-step:event.key==="ArrowRight"?step:0))/100*bounds.width,bounds.top+(cropTop+(corner.includes("n")?0:cropHeightPercent)+(event.key==="ArrowUp"?-step:event.key==="ArrowDown"?step:0))/100*bounds.height);cropResizeRef.current=null}}/>) }{ratio==="free"&&(["top","right","bottom","left"] as const).map(edge=><button key={edge} type="button" className={styles.cropHandle} data-edge={edge} style={{left:`${cropLeft+cropWidthPercent*(edge==="left"?0:edge==="right"?1:.5)}%`,top:`${cropTop+cropHeightPercent*(edge==="top"?0:edge==="bottom"?1:.5)}%`}} aria-label={`Resize crop ${edge} edge`} onPointerDown={event=>{event.preventDefault();cropEdgeRef.current={edge,left:cropLeft,top:cropTop,width:cropWidthPercent,height:cropHeightPercent};event.currentTarget.setPointerCapture(event.pointerId)}} onPointerMove={event=>{if(event.currentTarget.hasPointerCapture(event.pointerId))resizeEdge(event.clientX,event.clientY)}} onPointerUp={event=>{cropEdgeRef.current=null;if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId)}} onPointerCancel={()=>{cropEdgeRef.current=null}} onLostPointerCapture={()=>{cropEdgeRef.current=null}} onKeyDown={event=>{const horizontal=edge==="left"||edge==="right";if(!(horizontal?["ArrowLeft","ArrowRight"]:["ArrowUp","ArrowDown"]).includes(event.key))return;event.preventDefault();const bounds=cropCanvasRef.current?.getBoundingClientRect();if(!bounds)return;cropEdgeRef.current={edge,left:cropLeft,top:cropTop,width:cropWidthPercent,height:cropHeightPercent};const step=(event.shiftKey?5:1)*(event.key==="ArrowLeft"||event.key==="ArrowUp"?-1:1);resizeEdge(bounds.left+(cropLeft+(edge==="right"?cropWidthPercent:0)+(horizontal?step:0))/100*bounds.width,bounds.top+(cropTop+(edge==="bottom"?cropHeightPercent:0)+(horizontal?0:step))/100*bounds.height);cropEdgeRef.current=null}}/>)}</div></section>}
-          {mode==="convert"&&file&&<section className={styles.convertIntent} aria-labelledby="convert-intent-heading"><p>{file.type.replace("image/","").toUpperCase()}<br/>{prettyBytes(file.size)}</p><h3 id="convert-intent-heading">Convert to</h3><div className={styles.intentChoices}>{([["image/webp","WebP"],["image/jpeg","JPEG"],["image/png","PNG"]] as const).map(([value,label])=><button type="button" key={value} aria-pressed={format===value} disabled={busy} onClick={()=>setFormat(value)}>{label}{format===value?" ✓":""}</button>)}</div><p className={styles.inputHint}>{format==="image/jpeg"?"JPEG suits photos. Transparent areas become a solid background.":format==="image/png"?"PNG keeps transparency without lossy compression. Files can be larger.":"Recommended: WebP for a smaller web image. Actual size depends on the image."}</p><div className={styles.actions}><button type="button" className={styles.button} onClick={process} disabled={busy}>{busy?"Processing…":"Convert"}</button><button type="button" className={styles.button} data-quiet onClick={resetEdits} disabled={busy}>Reset</button></div></section>}
-          {mode==="resize"&&<div className={styles.upscaleControl}><label className={styles.check}><input type="checkbox" checked={preventUpscaling} onChange={event=>setPreventUpscaling(event.target.checked)}/> Do not enlarge smaller images</label>{enlargementRequested&&<p className={styles.upscaleWarning} role="status">{preventUpscaling?"The requested size is larger than the original. The output will be limited to the available image size.":substantialEnlargement?"This will make the image larger, but it cannot create missing detail. The result may look softer.":"Enlarging may make the result look softer because resizing cannot create missing detail."}</p>}</div>}
-{mode==="crop"&&<section className={styles.cropControls} aria-label="Crop controls"><fieldset className={styles.cropPresets}><legend>Crop shape</legend>{([['free','Free'],['1:1','1:1'],['16:9','16:9'],['4:5','4:5'],['9:16','9:16']] as const).map(([value,label])=><label key={value}><input type="radio" name="crop-shape" checked={ratio===value} onChange={()=>{trackProductEvent("crop_ratio_selected",{tool_name:"image-cropper",ratio:value});setRatio(value);setCropX(50);setCropY(50)}}/> {label}</label>)}</fieldset><div className={styles.field}><label htmlFor="crop-zoom">Zoom · {cropZoom.toFixed(1)}×</label><input id="crop-zoom" type="range" min="1" max="3" step="0.1" value={cropZoom} onChange={event=>setCropZoom(Number(event.target.value))}/></div><div className={styles.actions}><button type="button" className={styles.button} data-quiet onClick={()=>setCropRotation(current=>(current+90)%360)} aria-label="Rotate image 90 degrees">Rotate</button><button type="button" className={styles.button} data-quiet onClick={resetEdits} disabled={busy}>Reset</button></div><details className={styles.advanced}><summary>Fine tune</summary><div><fieldset className={styles.numericCrop}><legend>Crop position</legend><p>Use these fields instead of dragging, or move the focused crop area with the arrow keys. Hold Shift for larger moves.</p><div className={styles.row}><div className={styles.field}><label htmlFor="crop-position-x">Horizontal position (%)</label><input id="crop-position-x" type="number" min="0" max="100" step="1" value={Math.round(cropX)} onChange={event=>setCropX(Math.max(0,Math.min(100,Number(event.target.value)||0)))}/></div><div className={styles.field}><label htmlFor="crop-position-y">Vertical position (%)</label><input id="crop-position-y" type="number" min="0" max="100" step="1" value={Math.round(cropY)} onChange={event=>setCropY(Math.max(0,Math.min(100,Number(event.target.value)||0)))}/></div></div></fieldset>{ratio==="free"?<div className={styles.row}><div className={styles.field}><label htmlFor="crop-width">Selection width · {Math.round(freeCropWidth)}%</label><input id="crop-width" type="range" min="20" max="100" value={freeCropWidth} onChange={event=>setFreeCropWidth(Number(event.target.value))}/></div><div className={styles.field}><label htmlFor="crop-height">Selection height · {Math.round(freeCropHeight)}%</label><input id="crop-height" type="range" min="20" max="100" value={freeCropHeight} onChange={event=>setFreeCropHeight(Number(event.target.value))}/></div></div>:<div className={styles.field}><label htmlFor="crop-size">Selection size · {Math.round(cropScale)}%</label><input id="crop-size" type="range" min="25" max="100" value={cropScale} onChange={event=>setCropScale(Number(event.target.value))}/></div>}</div></details></section>}
-          {mode!=="resize"&&<details className={styles.advanced} ><summary>More options</summary><div><div className={styles.field}><label htmlFor="image-format">Output format</label><select id="image-format" value={format} onChange={event=>setFormat(event.target.value)}><option value="image/webp">WebP</option><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option>{avifOutputSupported&&<option value="image/avif">AVIF</option>}</select>{mode==="convert"&&<small>JPEG, PNG and WebP are available in supported modern browsers. AVIF appears only when this browser can create it.</small>}</div>{format!=="image/png"&&<div className={styles.field}><label htmlFor="image-quality">Quality · {quality}%</label><input id="image-quality" type="range" min="30" max="100" value={quality} onChange={event=>{setQuality(Number(event.target.value));setCompressionPreset("custom")}}/></div>}</div></details>}
+  return <div className={`${classes.workspace} ${mode==="crop"?classes.cropTool:mode==="compress"?classes.compressorTool:mode==="convert"?classes.converterTool:""}`} data-tool-processing={busy||undefined} aria-busy={busy}>
+    {mode!=="crop"&&<p className={classes.privacy}>Your image is processed locally in this browser and is not uploaded.</p>}
+    {mode!=="compress"&&mode!=="crop"&&<p className={classes.metadataNote}>Processed exports are newly encoded and may not keep camera, location or other embedded metadata. This can also reduce unintended personal information in the downloaded file.</p>}
+    <div className={classes.grid}>
+      <section className={classes.panel}>{mode!=="compress"&&mode!=="crop"&&<h2>Choose an image</h2>}
+        {mode==="crop"&&source?<><input ref={changeImageInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" hidden onChange={event=>{const next=event.currentTarget.files?.[0];event.currentTarget.value="";if(next)void chooseFiles([next])}}/><button type="button" className={classes.changeImage} disabled={busy} onClick={()=>changeImageInputRef.current?.click()}>Change image</button></>:mode==="convert"&&source?<button type="button" className={classes.startOver} data-quiet disabled={busy} onClick={clear}>Start over</button>:<><FileDropZone accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" title={uploadTitle} restrictions={`PNG, JPEG, WebP, GIF, BMP or AVIF · maximum 25 MB${mode==="compress"?" each · up to 10 images":""}`} multiple={mode==="compress"} disabled={busy} onFiles={files=>void chooseFiles(files)}/></>}
+        {error&&<div className={classes.errorRecovery}><p className={classes.status} data-error role="alert">{error}</p><input ref={recoveryInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,image/avif" hidden onChange={event=>{const next=event.currentTarget.files?.[0];event.currentTarget.value="";if(next)void chooseFiles([next])}}/><button type="button" className={classes.button} disabled={busy} onClick={()=>recoveryInputRef.current?.click()}>Choose another image</button></div>}
+        {mode==="compress"&&!source&&!batch.length&&<p className={classes.inputHint}>You can also paste an image or choose several files.</p>}
+        {mode==="compress"&&batch.length>0&&<section className={classes.batchPanel} aria-labelledby="batch-images-heading"><h3 id="batch-images-heading">{batch.length} images ready</h3><p>Balanced WebP compression is applied locally. Each original is kept when it is already smaller.</p><ol>{batch.map((item,index)=><li key={`${item.file.name}-${item.file.lastModified}-${index}`}><div><strong>{item.file.name}</strong><small>{prettyBytes(item.file.size)}</small></div><span className={classes.batchStatus}>{item.status==="queued"?"Waiting":item.status==="processing"?"Processing…":item.status==="error"?item.message:"Done"}</span>{item.status==="done"&&<><small>{prettyBytes(item.blob?.size??0)}</small><button type="button" className={classes.button} data-quiet onClick={()=>downloadBatchItem(item)}>Download</button></>}</li>)}</ol><dl className={classes.batchTotals}><div><dt>Total original</dt><dd>{prettyBytes(batchOriginalSize)}</dd></div><div><dt>Total output</dt><dd>{batchComplete?prettyBytes(batchOutputSize):"—"}</dd></div></dl><div className={classes.actions}><button type="button" className={classes.button} onClick={()=>void processBatch()} disabled={busy||batchComplete}>{busy?"Processing…":batchComplete?"Batch complete":"Compress images"}</button><button type="button" className={classes.startOver} data-quiet onClick={clear} disabled={busy}>Start over</button></div><p className={classes.status} role="status" aria-live="polite">{busy?`${batch.filter(item=>item.status==="done"||item.status==="error").length} of ${batch.length} finished.`:batchComplete?"Batch processing complete. Download each result below.":""}</p></section>}
+        {source&&<>{mode!=="crop"&&mode!=="resize"&&<div className={classes.preview}><img src={source} alt="Selected image preview" width={sourceWidth||1} height={sourceHeight||1} onLoad={onLoad} onError={onSourcePreviewError}/></div>}{mode!=="resize"&&mode!=="crop"&&<p>{file?.name}</p>}{mode==="compress"&&file&&<><dl className={classes.originalSummary}><div><dt>Original</dt><dd>{prettyBytes(file.size)}</dd></div><div><dt>Dimensions</dt><dd>{width} × {height}</dd></div><div><dt>Type</dt><dd>{(extensions[file.type]??file.type.replace("image/","")).toUpperCase()}</dd></div></dl><fieldset className={classes.presets}><legend>Choose the result you prefer</legend><label><input type="radio" name="compression-preset" checked={compressionPreset==="smaller"} onChange={()=>choosePreset("smaller")}/><span>Smaller file</span></label><label><input type="radio" name="compression-preset" checked={compressionPreset==="balanced"} onChange={()=>choosePreset("balanced")}/><span>Balanced <small>Recommended</small></span></label><label><input type="radio" name="compression-preset" checked={compressionPreset==="quality"} onChange={()=>choosePreset("quality")}/><span>Keep quality</span></label></fieldset></>}
+{mode==="resize"&&<section className={classes.resizeControls} aria-labelledby="custom-image-size"><figure className={classes.resizeSourcePreview}><img src={source} alt="Original image preview" width={sourceWidth||1} height={sourceHeight||1} onLoad={onLoad} onError={onSourcePreviewError}/><figcaption>{file?.name}</figcaption></figure><div className={classes.currentDimensions}><span>Current</span><strong>{sourceWidth} × {sourceHeight}</strong></div><h3 id="custom-image-size">New size</h3>{resizeMode==="percentage"?<div className={classes.field}><label htmlFor="resize-percentage">New size · {resizePercentage}%</label><input id="resize-percentage" type="range" min="10" max="200" step="5" value={resizePercentage} onChange={event=>applyPercentage(Number(event.target.value))}/><small>{width} × {height} px</small></div>:<><div className={classes.row}><div className={classes.field}><label htmlFor="image-width">Width</label><input id="image-width" type="number" min="1" max="12000" value={width||""} onChange={event=>{const next=Number(event.target.value);setWidth(next);if(keepProportions&&sourceWidth)setHeight(Math.round(next*sourceHeight/sourceWidth))}}/></div><div className={classes.field}><label htmlFor="image-height">Height</label><input id="image-height" type="number" min="1" max="12000" value={keepProportions?"":height||""} placeholder={keepProportions?`Auto (${height}px)`:"Height"} readOnly={keepProportions} onChange={event=>setHeight(Number(event.target.value))}/></div></div><label className={classes.check}><input type="checkbox" checked={keepProportions} onChange={event=>{const checked=event.target.checked;setKeepProportions(checked);if(checked&&sourceWidth)setHeight(Math.round(width*sourceHeight/sourceWidth))}}/> Keep proportions</label></>}<details className={classes.advanced}><summary>More options</summary><fieldset className={classes.modeSwitch}><legend>Resize by</legend><label><input type="radio" name="resize-mode" checked={resizeMode==="pixels"} onChange={()=>setResizeMode("pixels")}/> Pixels</label><label><input type="radio" name="resize-mode" checked={resizeMode==="percentage"} onChange={()=>applyPercentage(resizePercentage)}/> Percentage</label></fieldset><div className={classes.quickSizes} aria-label="Quick resize choices"><button type="button" onClick={()=>applyPercentage(50)}>50% smaller</button><button type="button" onClick={()=>applyPercentage(75)}>25% smaller</button>{imageResizePresets.map(preset=><button type="button" key={preset.id} onClick={()=>applyResizePreset(preset)}>{preset.label}<small>{preset.width} × {preset.height}</small></button>)}</div><p className={classes.inputHint}>Percentage choices keep the original proportions. Fixed dimension presets are general-purpose sizes, not official platform requirements, and may change the image shape. Use the Crop tool when exact framing matters.</p></details></section>}
+{mode==="crop"&&<section className={classes.cropWorkspace} aria-labelledby="visual-crop-heading"><h3 id="visual-crop-heading">Adjust the crop</h3><p id="crop-keyboard-help">Drag inside to move. Drag a corner to resize. Free crops also have edge handles. Use arrow keys on the focused crop to move it, or on a handle to resize. Hold Shift for larger steps.</p><div className={classes.cropCanvas} ref={cropCanvasRef} style={cropCanvasStyle}><img src={source} alt="Image with adjustable crop area" width={sourceWidth||1} height={sourceHeight||1} style={cropImageStyle} onLoad={onLoad} onError={onSourcePreviewError}/><div className={classes.cropFrame} style={cropStyle} role="slider" tabIndex={0} aria-label="Crop area position" aria-describedby="crop-keyboard-help" aria-valuemin={0} aria-valuemax={100} aria-valuetext={`Horizontal ${Math.round(cropX)}%, vertical ${Math.round(cropY)}%`} aria-valuenow={Math.round((cropX+cropY)/2)} onPointerDown={event=>{if(event.button!==0)return;event.preventDefault();cropDraggingRef.current={pointerId:event.pointerId,clientX:event.clientX,clientY:event.clientY,left:cropLeft,top:cropTop};event.currentTarget.setPointerCapture(event.pointerId)}} onPointerMove={event=>{if(cropDraggingRef.current)moveCrop(event)}} onPointerUp={event=>{cropDraggingRef.current=null;if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId)}} onPointerCancel={()=>{cropDraggingRef.current=null}} onLostPointerCapture={()=>{cropDraggingRef.current=null}} onKeyDown={event=>{const amount=event.shiftKey?10:2;if(event.key==="ArrowLeft")setCropX(current=>Math.max(0,current-amount));else if(event.key==="ArrowRight")setCropX(current=>Math.min(100,current+amount));else if(event.key==="ArrowUp")setCropY(current=>Math.max(0,current-amount));else if(event.key==="ArrowDown")setCropY(current=>Math.min(100,current+amount));else return;event.preventDefault()}}><span>Drag to position</span></div>{(["nw","ne","sw","se"] as const).map(corner=><button key={corner} type="button" className={classes.cropHandle} data-corner={corner} style={{left:`${cropLeft+(corner.includes("w")?0:cropWidthPercent)}%`,top:`${cropTop+(corner.includes("n")?0:cropHeightPercent)}%`}} aria-label={`Resize crop from ${corner.includes("n")?"top":"bottom"} ${corner.includes("w")?"left":"right"} corner`} onPointerDown={event=>{event.preventDefault();cropResizeRef.current={corner,anchorX:cropLeft+(corner.includes("w")?cropWidthPercent:0),anchorY:cropTop+(corner.includes("n")?cropHeightPercent:0)};event.currentTarget.setPointerCapture(event.pointerId)}} onPointerMove={event=>{if(event.currentTarget.hasPointerCapture(event.pointerId))resizeCrop(event.clientX,event.clientY)}} onPointerUp={event=>{cropResizeRef.current=null;if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId)}} onPointerCancel={()=>{cropResizeRef.current=null}} onLostPointerCapture={()=>{cropResizeRef.current=null}} onKeyDown={event=>{if(!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(event.key))return;event.preventDefault();const bounds=cropCanvasRef.current?.getBoundingClientRect();if(!bounds)return;cropResizeRef.current={corner,anchorX:cropLeft+(corner.includes("w")?cropWidthPercent:0),anchorY:cropTop+(corner.includes("n")?cropHeightPercent:0)};const step=event.shiftKey?5:1;resizeCrop(bounds.left+(cropLeft+(corner.includes("w")?0:cropWidthPercent)+(event.key==="ArrowLeft"?-step:event.key==="ArrowRight"?step:0))/100*bounds.width,bounds.top+(cropTop+(corner.includes("n")?0:cropHeightPercent)+(event.key==="ArrowUp"?-step:event.key==="ArrowDown"?step:0))/100*bounds.height);cropResizeRef.current=null}}/>) }{ratio==="free"&&(["top","right","bottom","left"] as const).map(edge=><button key={edge} type="button" className={classes.cropHandle} data-edge={edge} style={{left:`${cropLeft+cropWidthPercent*(edge==="left"?0:edge==="right"?1:.5)}%`,top:`${cropTop+cropHeightPercent*(edge==="top"?0:edge==="bottom"?1:.5)}%`}} aria-label={`Resize crop ${edge} edge`} onPointerDown={event=>{event.preventDefault();cropEdgeRef.current={edge,left:cropLeft,top:cropTop,width:cropWidthPercent,height:cropHeightPercent};event.currentTarget.setPointerCapture(event.pointerId)}} onPointerMove={event=>{if(event.currentTarget.hasPointerCapture(event.pointerId))resizeEdge(event.clientX,event.clientY)}} onPointerUp={event=>{cropEdgeRef.current=null;if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId)}} onPointerCancel={()=>{cropEdgeRef.current=null}} onLostPointerCapture={()=>{cropEdgeRef.current=null}} onKeyDown={event=>{const horizontal=edge==="left"||edge==="right";if(!(horizontal?["ArrowLeft","ArrowRight"]:["ArrowUp","ArrowDown"]).includes(event.key))return;event.preventDefault();const bounds=cropCanvasRef.current?.getBoundingClientRect();if(!bounds)return;cropEdgeRef.current={edge,left:cropLeft,top:cropTop,width:cropWidthPercent,height:cropHeightPercent};const step=(event.shiftKey?5:1)*(event.key==="ArrowLeft"||event.key==="ArrowUp"?-1:1);resizeEdge(bounds.left+(cropLeft+(edge==="right"?cropWidthPercent:0)+(horizontal?step:0))/100*bounds.width,bounds.top+(cropTop+(edge==="bottom"?cropHeightPercent:0)+(horizontal?0:step))/100*bounds.height);cropEdgeRef.current=null}}/>)}</div></section>}
+          {mode==="convert"&&file&&<section className={classes.convertIntent} aria-labelledby="convert-intent-heading"><p>{file.type.replace("image/","").toUpperCase()}<br/>{prettyBytes(file.size)}</p><h3 id="convert-intent-heading">Convert to</h3><div className={classes.intentChoices}>{([["image/webp","WebP"],["image/jpeg","JPEG"],["image/png","PNG"]] as const).map(([value,label])=><button type="button" key={value} aria-pressed={format===value} disabled={busy} onClick={()=>setFormat(value)}>{label}{format===value?" ✓":""}</button>)}</div><p className={classes.inputHint}>{format==="image/jpeg"?"JPEG suits photos. Transparent areas become a solid background.":format==="image/png"?"PNG keeps transparency without lossy compression. Files can be larger.":"Recommended: WebP for a smaller web image. Actual size depends on the image."}</p><div className={classes.actions}><button type="button" className={classes.button} onClick={process} disabled={busy}>{busy?"Processing…":"Convert"}</button><button type="button" className={classes.button} data-quiet onClick={resetEdits} disabled={busy}>Reset</button></div></section>}
+          {mode==="resize"&&<div className={classes.upscaleControl}><label className={classes.check}><input type="checkbox" checked={preventUpscaling} onChange={event=>setPreventUpscaling(event.target.checked)}/> Do not enlarge smaller images</label>{enlargementRequested&&<p className={classes.upscaleWarning} role="status">{preventUpscaling?"The requested size is larger than the original. The output will be limited to the available image size.":substantialEnlargement?"This will make the image larger, but it cannot create missing detail. The result may look softer.":"Enlarging may make the result look softer because resizing cannot create missing detail."}</p>}</div>}
+{mode==="crop"&&<section className={classes.cropControls} aria-label="Crop controls"><fieldset className={classes.cropPresets}><legend>Crop shape</legend>{([['free','Free'],['1:1','1:1'],['16:9','16:9'],['4:5','4:5'],['9:16','9:16']] as const).map(([value,label])=><label key={value}><input type="radio" name="crop-shape" checked={ratio===value} onChange={()=>{trackProductEvent("crop_ratio_selected",{tool_name:"image-cropper",ratio:value});setRatio(value);setCropX(50);setCropY(50)}}/> {label}</label>)}</fieldset><div className={classes.field}><label htmlFor="crop-zoom">Zoom · {cropZoom.toFixed(1)}×</label><input id="crop-zoom" type="range" min="1" max="3" step="0.1" value={cropZoom} onChange={event=>setCropZoom(Number(event.target.value))}/></div><div className={classes.actions}><button type="button" className={classes.button} data-quiet onClick={()=>setCropRotation(current=>(current+90)%360)} aria-label="Rotate image 90 degrees">Rotate</button><button type="button" className={classes.button} data-quiet onClick={resetEdits} disabled={busy}>Reset</button></div><details className={classes.advanced}><summary>Fine tune</summary><div><fieldset className={classes.numericCrop}><legend>Crop position</legend><p>Use these fields instead of dragging, or move the focused crop area with the arrow keys. Hold Shift for larger moves.</p><div className={classes.row}><div className={classes.field}><label htmlFor="crop-position-x">Horizontal position (%)</label><input id="crop-position-x" type="number" min="0" max="100" step="1" value={Math.round(cropX)} onChange={event=>setCropX(Math.max(0,Math.min(100,Number(event.target.value)||0)))}/></div><div className={classes.field}><label htmlFor="crop-position-y">Vertical position (%)</label><input id="crop-position-y" type="number" min="0" max="100" step="1" value={Math.round(cropY)} onChange={event=>setCropY(Math.max(0,Math.min(100,Number(event.target.value)||0)))}/></div></div></fieldset>{ratio==="free"?<div className={classes.row}><div className={classes.field}><label htmlFor="crop-width">Selection width · {Math.round(freeCropWidth)}%</label><input id="crop-width" type="range" min="20" max="100" value={freeCropWidth} onChange={event=>setFreeCropWidth(Number(event.target.value))}/></div><div className={classes.field}><label htmlFor="crop-height">Selection height · {Math.round(freeCropHeight)}%</label><input id="crop-height" type="range" min="20" max="100" value={freeCropHeight} onChange={event=>setFreeCropHeight(Number(event.target.value))}/></div></div>:<div className={classes.field}><label htmlFor="crop-size">Selection size · {Math.round(cropScale)}%</label><input id="crop-size" type="range" min="25" max="100" value={cropScale} onChange={event=>setCropScale(Number(event.target.value))}/></div>}</div></details></section>}
+          {mode!=="resize"&&<details className={classes.advanced} ><summary>More options</summary><div><div className={classes.field}><label htmlFor="image-format">Output format</label><select id="image-format" value={format} onChange={event=>setFormat(event.target.value)}><option value="image/webp">WebP</option><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option>{avifOutputSupported&&<option value="image/avif">AVIF</option>}</select>{mode==="convert"&&<small>JPEG, PNG and WebP are available in supported modern browsers. AVIF appears only when this browser can create it.</small>}</div>{format!=="image/png"&&<div className={classes.field}><label htmlFor="image-quality">Quality · {quality}%</label><input id="image-quality" type="range" min="30" max="100" value={quality} onChange={event=>{setQuality(Number(event.target.value));setCompressionPreset("custom")}}/></div>}</div></details>}
 
-          {mode!=="convert"&&<div className={styles.actions}><button type="button" className={styles.button} onClick={process} disabled={busy}>{busy?"Processing…":labels[mode]}</button>{mode!=="crop"&&<button type="button" className={styles.button} data-quiet onClick={resetEdits} disabled={busy}>Reset</button>}<button type="button" className={`${styles.button} ${styles.startOver}`} data-quiet onClick={clear} disabled={busy}>Start over</button></div>}<p className={styles.status} role="status" aria-live="polite">{busy?"Processing…":""}</p></>}
+          {mode!=="convert"&&<div className={classes.actions}><button type="button" className={classes.button} onClick={process} disabled={busy}>{busy?"Processing…":labels[mode]}</button>{mode!=="crop"&&<button type="button" className={classes.button} data-quiet onClick={resetEdits} disabled={busy}>Reset</button>}<button type="button" className={classes.startOver} data-quiet onClick={clear} disabled={busy}>Start over</button></div>}<p className={classes.status} role="status" aria-live="polite">{busy?"Processing…":""}</p></>}
       </section>
-<section ref={resultRef} className={styles.panel} tabIndex={-1} aria-labelledby={`${mode}-result-heading`} style={{scrollMarginTop:"var(--header-scroll-offset)"}} id={`${mode}-image-result`}><h2 id={`${mode}-result-heading`}>Result</h2>{result&&file?<>
-<div className={styles.resultHero} role="status"><span className={styles.resultLabel}><span aria-hidden="true">✓ </span>{result.outcome==="original"?"Original kept":result.outcome==="tiny"?"Small saving":"Ready"}</span><strong className={styles.resultName}>{outputName}</strong>{mode==="convert"?<dl className={styles.conversionSummary}><div><dt>{file.type==="image/webp"?"WebP":file.type.replace("image/","").toUpperCase()}</dt><dd>{prettyBytes(file.size)}</dd></div><div><dt>{result.blob.type==="image/webp"?"WebP":result.blob.type.replace("image/","").toUpperCase()}</dt><dd>{prettyBytes(result.blob.size)}</dd></div></dl>:<p>{result.width} × {result.height}<br/>{prettyBytes(result.blob.size)}</p>}{mode==="compress"&&<p>{result.outcome==="original"?"No smaller version was created.":result.outcome==="tiny"?`The new version only saves ${savedPercent}%. Keeping the original may be better.`:`${savedPercent}% smaller`}</p>}</div>
-        {mode!=="convert"&&<div className={styles.preview}><img src={result.url} onLoad={markTransparency} alt="Processed image preview" width={result.width} height={result.height}/></div>}
-        <div className={`${styles.actions} ${styles.downloadAction}`}><button type="button" className={styles.button} onClick={download} aria-label={result.outcome==="original"?"Download original image":mode==="compress"?"Download compressed image":mode==="resize"?"Download resized image":mode==="crop"?"Download cropped image":`Download ${outputName}`}>{result.outcome==="original"?"Keep original":mode==="convert"?`Download ${result.blob.type==="image/webp"?"WebP":result.blob.type.replace("image/","").toUpperCase()}`:"Download"}</button></div>
-        <nav className={`${styles.resultLinks} ${styles.imageContinue}`} aria-label="Use this image in another tool"><span>Continue with:</span>{(["compress","resize","crop","convert"] as const).filter(next=>next!==mode).map(next=><button type="button" key={next} aria-label={`${next[0].toUpperCase()}${next.slice(1)} this image`} disabled={handoffBusy!==null} onClick={()=>void continueWith(next)}>{handoffBusy===next?"Opening…":`${next[0].toUpperCase()}${next.slice(1)}`}</button>)}</nav>
-        {mode==="convert"?<details className={styles.advanced}><summary>Preview converted image</summary><div className={styles.preview}><img src={result.url} onLoad={markTransparency} alt="Converted image preview" width={result.width} height={result.height}/></div><p>{result.width} × {result.height}</p></details>:mode==="resize"?<dl className={styles.resizeResult}><div><dt>Before</dt><dd>{sourceWidth} × {sourceHeight}</dd></div><div><dt>After</dt><dd>{result.width} × {result.height}</dd></div><div><dt>File size</dt><dd>{prettyBytes(file.size)} <span aria-hidden="true">→</span> {prettyBytes(result.blob.size)}</dd></div></dl>:mode==="crop"?<dl className={styles.cropResult}><div><dt>Original</dt><dd>{sourceWidth} × {sourceHeight}</dd></div><div><dt>Crop</dt><dd>{result.width} × {result.height}</dd></div></dl>:<dl className={styles.stats}><div><dt>Filename</dt><dd>{outputName}</dd></div><div><dt>Format</dt><dd>{(extensions[result.blob.type]??"image").toUpperCase()}</dd></div><div><dt>Dimensions</dt><dd>{result.width} × {result.height}</dd></div><div><dt>Size</dt><dd>{prettyBytes(result.blob.size)}</dd></div><div><dt>Saved</dt><dd>{savedPercent}%</dd></div></dl>}
-        {mode==="convert"&&formatComparisons.length>0&&<details className={styles.formatComparison} aria-labelledby="format-comparison-heading"><summary id="format-comparison-heading">Compare other formats</summary><p>Generated in this browser from the current image and quality setting.</p><dl>{formatComparisons.map(candidate=>{const smallest=Math.min(...formatComparisons.map(item=>item.size))===candidate.size;return <div key={candidate.type}><dt>{(extensions[candidate.type]??candidate.type).toUpperCase()}</dt><dd>{prettyBytes(candidate.size)} {smallest&&<strong>Smallest</strong>}</dd></div>})}</dl></details>}
-      </>:<p>Your processed image and its real file size will appear here.</p>}<p className={styles.status} data-error={Boolean(error)} role="status">{error}</p></section>
+<section ref={resultRef} className={classes.panel} tabIndex={-1} aria-labelledby={`${mode}-result-heading`} style={{scrollMarginTop:"var(--header-scroll-offset)"}} id={`${mode}-image-result`}><h2 id={`${mode}-result-heading`}>Result</h2>{result&&file?<>
+<div className={classes.resultHero} role="status"><span className={classes.resultLabel}><span aria-hidden="true">✓ </span>{result.outcome==="original"?"Original kept":result.outcome==="tiny"?"Small saving":"Ready"}</span><strong className={classes.resultName}>{outputName}</strong>{mode==="convert"?<dl className={classes.conversionSummary}><div><dt>{file.type==="image/webp"?"WebP":file.type.replace("image/","").toUpperCase()}</dt><dd>{prettyBytes(file.size)}</dd></div><div><dt>{result.blob.type==="image/webp"?"WebP":result.blob.type.replace("image/","").toUpperCase()}</dt><dd>{prettyBytes(result.blob.size)}</dd></div></dl>:<p>{result.width} × {result.height}<br/>{prettyBytes(result.blob.size)}</p>}{mode==="compress"&&<p>{result.outcome==="original"?"No smaller version was created.":result.outcome==="tiny"?`The new version only saves ${savedPercent}%. Keeping the original may be better.`:`${savedPercent}% smaller`}</p>}</div>
+        {mode!=="convert"&&<div className={classes.preview}><img src={result.url} onLoad={markTransparency} alt="Processed image preview" width={result.width} height={result.height}/></div>}
+        <div className={`${classes.actions} ${classes.downloadAction}`}><button type="button" className={classes.button} onClick={download} aria-label={result.outcome==="original"?"Download original image":mode==="compress"?"Download compressed image":mode==="resize"?"Download resized image":mode==="crop"?"Download cropped image":`Download ${outputName}`}>{result.outcome==="original"?"Keep original":mode==="convert"?`Download ${result.blob.type==="image/webp"?"WebP":result.blob.type.replace("image/","").toUpperCase()}`:"Download"}</button></div>
+        <nav className={`${classes.resultLinks} ${classes.imageContinue}`} aria-label="Use this image in another tool"><span>Continue with:</span>{(["compress","resize","crop","convert"] as const).filter(next=>next!==mode).map(next=><button type="button" key={next} aria-label={`${next[0].toUpperCase()}${next.slice(1)} this image`} disabled={handoffBusy!==null} onClick={()=>void continueWith(next)}>{handoffBusy===next?"Opening…":`${next[0].toUpperCase()}${next.slice(1)}`}</button>)}</nav>
+        {mode==="convert"?<details className={classes.advanced}><summary>Preview converted image</summary><div className={classes.preview}><img src={result.url} onLoad={markTransparency} alt="Converted image preview" width={result.width} height={result.height}/></div><p>{result.width} × {result.height}</p></details>:mode==="resize"?<dl className={classes.resizeResult}><div><dt>Before</dt><dd>{sourceWidth} × {sourceHeight}</dd></div><div><dt>After</dt><dd>{result.width} × {result.height}</dd></div><div><dt>File size</dt><dd>{prettyBytes(file.size)} <span aria-hidden="true">→</span> {prettyBytes(result.blob.size)}</dd></div></dl>:mode==="crop"?<dl className={classes.cropResult}><div><dt>Original</dt><dd>{sourceWidth} × {sourceHeight}</dd></div><div><dt>Crop</dt><dd>{result.width} × {result.height}</dd></div></dl>:<dl className={classes.stats}><div><dt>Filename</dt><dd>{outputName}</dd></div><div><dt>Format</dt><dd>{(extensions[result.blob.type]??"image").toUpperCase()}</dd></div><div><dt>Dimensions</dt><dd>{result.width} × {result.height}</dd></div><div><dt>Size</dt><dd>{prettyBytes(result.blob.size)}</dd></div><div><dt>Saved</dt><dd>{savedPercent}%</dd></div></dl>}
+        {mode==="convert"&&formatComparisons.length>0&&<details className={classes.formatComparison} aria-labelledby="format-comparison-heading"><summary id="format-comparison-heading">Compare other formats</summary><p>Generated in this browser from the current image and quality setting.</p><dl>{formatComparisons.map(candidate=>{const smallest=Math.min(...formatComparisons.map(item=>item.size))===candidate.size;return <div key={candidate.type}><dt>{(extensions[candidate.type]??candidate.type).toUpperCase()}</dt><dd>{prettyBytes(candidate.size)} {smallest&&<strong>Smallest</strong>}</dd></div>})}</dl></details>}
+      </>:<p>Your processed image and its real file size will appear here.</p>}<p className={classes.status} data-error={Boolean(error)} role="status">{error}</p></section>
     </div>
-    {mode==="compress"&&<p className={styles.metadataNote}>Exported images may not retain camera or location metadata.</p>}
-    {mode==="compress"&&source&&result&&result.outcome!=="original"&&<section className={styles.comparison} aria-labelledby="compression-comparison"><h2 id="compression-comparison">Before and after</h2><p>Compare the complete images at the same fitted size. Neither preview is enlarged.</p><div><figure><figcaption>Original</figcaption><img src={source} onLoad={markTransparency} alt="Original image before compression" width={width||result.width} height={height||result.height}/></figure><figure><figcaption>Compressed</figcaption><img src={result.url} onLoad={markTransparency} alt="Image after compression" width={result.width} height={result.height}/></figure></div></section>}
+    {mode==="compress"&&<p className={classes.metadataNote}>Exported images may not retain camera or location metadata.</p>}
+    {mode==="compress"&&source&&result&&result.outcome!=="original"&&<section className={classes.comparison} aria-labelledby="compression-comparison"><h2 id="compression-comparison">Before and after</h2><p>Compare the complete images at the same fitted size. Neither preview is enlarged.</p><div><figure><figcaption>Original</figcaption><img src={source} onLoad={markTransparency} alt="Original image before compression" width={width||result.width} height={height||result.height}/></figure><figure><figcaption>Compressed</figcaption><img src={result.url} onLoad={markTransparency} alt="Image after compression" width={result.width} height={result.height}/></figure></div></section>}
   </div>;
 }
