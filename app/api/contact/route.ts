@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import { SITE_URL } from "@/lib/site-config";
 import { CONTACT_LIMITS,validateContactInput } from "@/lib/contact/validation";
 import { bestEffortContactRateLimit } from "@/lib/contact/rate-limit";
 import { contactDeliveryIsEnabled,sendContactEmail } from "@/lib/contact/resend";
@@ -14,8 +13,6 @@ const json=(body:ContactResponse,status=200,extra:HeadersInit={})=>Response.json
 const failure=(code:ContactErrorCode,message:string,status:number,extra:HeadersInit={})=>json({ok:false,code,message},status,extra);
 
 export async function POST(request:NextRequest){
-  const origin=request.headers.get("origin");
-  if(origin&&origin!==SITE_URL&&origin!==request.nextUrl.origin)return failure("REQUEST_REJECTED","This request could not be accepted.",403);
   if(!browserRequestOriginIsAllowed(request))return failure("REQUEST_REJECTED","This request could not be accepted.",403);
   const contentType=request.headers.get("content-type")??"";
   if(!contentType.toLowerCase().startsWith("application/json"))return failure("UNSUPPORTED_MEDIA_TYPE","Send the contact form as JSON.",415);
