@@ -16,6 +16,7 @@ function configuredEmail(name:string){const value=required(name);if(!/^\S+@\S+\.
 function escapeHtml(value:string){return value.replace(/[&<>"']/g,character=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"})[character]!);}
 function resendClient(){return resend??=new Resend(required("RESEND_API_KEY"));}
 function statusCategory(error:unknown):ProviderStatusCategory{if(!error||typeof error!=="object"||!("statusCode" in error)||typeof error.statusCode!=="number")return "unknown";return error.statusCode>=500?"server-error":error.statusCode>=400?"client-error":"unknown";}
+function isRetryable(error:unknown){const category=statusCategory(error);return category==="server-error"||category==="unknown";}
 
 export function contactDeliveryIsEnabled(){
   const mode=process.env.CONTACT_DELIVERY_MODE?.trim().toLowerCase();
@@ -31,6 +32,17 @@ export async function sendContactEmail({email,message,topic,requestId}:SendConta
   const topicLabel=TOPIC_LABELS[topic],subject=`Portfolio message — ${topicLabel}`,submitted=new Date().toISOString();
   const text=`NEW PORTFOLIO MESSAGE\n\nEmail\n${email}\n\nTopic\n${topicLabel}\n\nMessage\n${message}\n\n────────────────────\n\nSent from:\n${SITE_URL}\n\nSubmitted:\n${submitted}`;
   const html=`<h1>New portfolio message</h1><p><strong>Email</strong><br>${escapeHtml(email)}</p><p><strong>Topic</strong><br>${escapeHtml(topicLabel)}</p><p><strong>Message</strong><br>${escapeHtml(message).replace(/\r\n?|\n/g,"<br>")}</p><hr><p><strong>Sent from:</strong><br>${escapeHtml(SITE_URL)}</p><p><strong>Submitted:</strong><br>${escapeHtml(submitted)}</p>`;
-  const {error}=await emailClient.send({from,to:[to],replyTo:email,subject,text,html},{idempotencyKey:`portfolio-contact/${requestId}`});
-  if(error)throw new ContactDeliveryFailure("provider",statusCategory(error));
+  const delivery={from,to:[to],replyTo:email,subject,text,html},options={idempotencyKey:`portfolio-contact/${requestId}`};
+  for(let attempt=0;attempt<2;attempt++){
+    try{
+      const {error}=await emailClient.send(delivery,options);
+      if(!error)return;
+      if(attempt===0&&isRetryable(error))continue;
+      throw new ContactDeliveryFailure("provider",statusCategory(error));
+    }catch(error){
+      if(error instanceof ContactDeliveryFailure)throw error;
+      if(attempt===0)continue;
+      throw new ContactDeliveryFailure("provider","unknown");
+    }
+  }
 }

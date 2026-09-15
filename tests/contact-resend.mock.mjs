@@ -17,7 +17,7 @@ const mockRequire=specifier=>{
 new Function("require","module","exports",compiled)(mockRequire,module,module.exports);
 const {contactDeliveryIsEnabled,sendContactEmail}=module.exports;
 
-const previous={mode:process.env.CONTACT_DELIVERY_MODE,nodeEnv:process.env.NODE_ENV,apiKey:process.env.RESEND_API_KEY,to:process.env.CONTACT_TO_EMAIL,from:process.env.CONTACT_FROM_EMAIL};
+const previous={mode:process.env.CONTACT_DELIVERY_MODE,nodeEnv:process.env.NODE_ENV,apiKey:process.env.RESEND_API_KEY,to:process.env.CONTACT_TO_EMAIL,from:process.env.CONTACT_FROM_EMAIL,fromName:process.env.CONTACT_FROM_NAME};
 try{
   process.env.NODE_ENV="test";
   delete process.env.CONTACT_DELIVERY_MODE;
@@ -29,6 +29,7 @@ try{
   process.env.RESEND_API_KEY="not-used-by-the-mock";
   process.env.CONTACT_FROM_EMAIL="contact@portfolio.test";
   process.env.CONTACT_TO_EMAIL="owner@example.test";
+  delete process.env.CONTACT_FROM_NAME;
   let delivery,sendCount=0;
   const mockEmailClient={send:async(message,options)=>{sendCount++;delivery={message,options};return {data:{id:"mock-only"},error:null};}};
   await sendContactEmail({email:"visitor@example.test",message:"A mocked delivery only.",topic:"website",requestId:"123e4567-e89b-42d3-a456-426614174000"},mockEmailClient);
@@ -53,9 +54,15 @@ try{
   assert.equal(delivery.message.text.includes(linkedMessage),true);
   assert.equal(delivery.message.html.includes(linkedMessage),true);
   assert.equal(delivery.message.html.includes("<a"),false,"the application creates no link or preview markup");
+  let transientAttempts=0;
+  await sendContactEmail({email:"visitor@example.test",message:"Retry a temporary provider fault.",topic:"website",requestId:"423e4567-e89b-42d3-a456-426614174000"},{send:async()=>{transientAttempts++;return transientAttempts===1?{data:null,error:{statusCode:503}}:{data:{id:"mock-retry"},error:null};}});
+  assert.equal(transientAttempts,2,"a temporary provider failure is retried once");
+  let permanentAttempts=0;
+  await assert.rejects(()=>sendContactEmail({email:"visitor@example.test",message:"Do not retry a permanent fault.",topic:"website",requestId:"523e4567-e89b-42d3-a456-426614174000"},{send:async()=>{permanentAttempts++;return {data:null,error:{statusCode:403}};}}),error=>error.category==="provider"&&error.providerStatusCategory==="client-error");
+  assert.equal(permanentAttempts,1,"a permanent provider rejection is not retried");
   process.stdout.write("✓ contact delivery uses a mocked Resend client in tests\n");
 }finally{
-  for(const [name,value] of Object.entries({CONTACT_DELIVERY_MODE:previous.mode,NODE_ENV:previous.nodeEnv,RESEND_API_KEY:previous.apiKey,CONTACT_TO_EMAIL:previous.to,CONTACT_FROM_EMAIL:previous.from})){
+  for(const [name,value] of Object.entries({CONTACT_DELIVERY_MODE:previous.mode,NODE_ENV:previous.nodeEnv,RESEND_API_KEY:previous.apiKey,CONTACT_TO_EMAIL:previous.to,CONTACT_FROM_EMAIL:previous.from,CONTACT_FROM_NAME:previous.fromName})){
     if(value===undefined)delete process.env[name];else process.env[name]=value;
   }
 }
