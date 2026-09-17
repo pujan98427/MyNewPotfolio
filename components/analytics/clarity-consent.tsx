@@ -66,22 +66,25 @@ function signalClarityConsent(choice: ConsentChoice) {
   });
 }
 
-export function ClarityConsent({ projectId }: { projectId: string }) {
+export function ClarityConsent({ projectId, requireConsent }: { projectId: string; requireConsent: boolean }) {
   const storedChoice = useSyncExternalStore(subscribeToStoredConsent, readStoredConsent, serverConsentSnapshot);
   const [volatileChoice, setVolatileChoice] = useState<StoredConsent | undefined>(undefined);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const choice = storedChoice ?? volatileChoice ?? null;
-  const open = storedChoice !== undefined && (choice === null || preferencesOpen);
+  const open = requireConsent && storedChoice !== undefined && (choice === null || preferencesOpen);
+  const shouldLoad = !requireConsent || choice === "accepted";
 
   useEffect(() => {
+    if (!requireConsent) return;
     const showPreferences = () => setPreferencesOpen(true);
     window.addEventListener(CLARITY_CONSENT_OPEN_EVENT, showPreferences);
     return () => window.removeEventListener(CLARITY_CONSENT_OPEN_EVENT, showPreferences);
-  }, []);
+  }, [requireConsent]);
 
   useEffect(() => {
-    if (choice === "accepted") signalClarityConsent(choice);
-  }, [choice]);
+    if (!requireConsent) signalClarityConsent("rejected");
+    else if (choice === "accepted") signalClarityConsent(choice);
+  }, [choice, requireConsent]);
 
   const choose = (nextChoice: ConsentChoice) => {
     const wasAccepted = choice === "accepted";
@@ -97,7 +100,7 @@ export function ClarityConsent({ projectId }: { projectId: string }) {
   };
 
   return <>
-    {choice === "accepted" && <Script
+    {shouldLoad && <Script
       id="microsoft-clarity"
       src={`https://www.clarity.ms/tag/${projectId}`}
       strategy="afterInteractive"

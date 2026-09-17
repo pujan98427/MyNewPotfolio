@@ -9,7 +9,7 @@ const adsenseEnabled=process.env.NEXT_PUBLIC_ADSENSE_ENABLED==="true"&&/^ca-pub-
 const adsenseScriptOrigin="https://pagead2.googlesyndication.com";
 const adsenseFrameOrigins="https://googleads.g.doubleclick.net https://tpc.googlesyndication.com";
 const clarityProjectId=process.env.NEXT_PUBLIC_MICROSOFT_CLARITY_PROJECT_ID?.trim()??"";
-const clarityEnabled=process.env.NEXT_PUBLIC_MICROSOFT_CLARITY_ENABLED?.trim().toLowerCase()==="true"&&/^[a-z0-9]+$/i.test(clarityProjectId)&&clarityProjectId.length<=64;
+const clarityEnabled=/^[a-z0-9]+$/i.test(clarityProjectId)&&clarityProjectId.length<=64;
 const clarityOrigins=["https://www.clarity.ms",...Array.from({length:26},(_,index)=>`https://${String.fromCharCode(97+index)}.clarity.ms`),"https://c.bing.com"].join(" ");
 const contentSecurityPolicy=[
   "default-src 'self'",

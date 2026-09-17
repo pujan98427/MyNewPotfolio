@@ -11,6 +11,6 @@ export function normalizeClarityProjectId(value: string | undefined) {
     : "";
 }
 
-export function isClarityEnabled(value: string | undefined) {
-  return value?.trim().toLowerCase() === "true";
+export function isClarityConsentRequired(value: string | undefined) {
+  return value?.trim().toLowerCase() !== "false";
 }
