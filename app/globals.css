@@ -533,7 +533,7 @@ footer { display:flex; justify-content:space-between; border-top:1px solid var(-
 .home-education li[data-featured]>p:last-child { grid-column:2/4; grid-row:2; align-self:end; margin:0; padding-top:1rem; border-top:1px solid var(--color-ink); color:var(--color-muted); }
 .home-about { padding-block-start:clamp(5rem,9vw,9rem); }
 .home-about .portrait { min-height:clamp(28rem,47vw,48rem); }
-.home-about .portrait img { width:100%; height:100%; object-fit:cover; object-position:50% 35%; }
+.home-about .portrait img { width:100%; height:100%;     background: #12a63b; object-fit:cover; object-position:50% 35%; }
 .home-contact { display:grid; grid-template-columns:minmax(9rem,.45fr) minmax(0,1.75fr); gap:clamp(2rem,6vw,8rem); border-top:1px solid var(--color-ink); background:var(--color-ink); color:var(--color-canvas); }
 .home-contact::before { color:var(--color-canvas); opacity:.045; }
 .home-contact-content>p { max-width:38rem; margin:2rem 0; color:var(--color-subtle); font-size:var(--text-lead); line-height:1.65; }
