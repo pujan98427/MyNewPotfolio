@@ -8,13 +8,16 @@ const turnstileEnabled=Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim(
 const adsenseEnabled=process.env.NEXT_PUBLIC_ADSENSE_ENABLED==="true"&&/^ca-pub-\d{16}$/.test(process.env.NEXT_PUBLIC_ADSENSE_CLIENT?.trim()??"");
 const adsenseScriptOrigin="https://pagead2.googlesyndication.com";
 const adsenseFrameOrigins="https://googleads.g.doubleclick.net https://tpc.googlesyndication.com";
+const clarityProjectId=process.env.NEXT_PUBLIC_MICROSOFT_CLARITY_PROJECT_ID?.trim()??"";
+const clarityEnabled=process.env.NEXT_PUBLIC_MICROSOFT_CLARITY_ENABLED?.trim().toLowerCase()==="true"&&/^[a-z0-9]+$/i.test(clarityProjectId)&&clarityProjectId.length<=64;
+const clarityOrigins=["https://www.clarity.ms",...Array.from({length:26},(_,index)=>`https://${String.fromCharCode(97+index)}.clarity.ms`),"https://c.bing.com"].join(" ");
 const contentSecurityPolicy=[
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment?" 'unsafe-eval'":""}${turnstileEnabled?` ${turnstileOrigin}`:""}${adsenseEnabled?` ${adsenseScriptOrigin}`:""}`,
+  `script-src 'self' 'unsafe-inline'${isDevelopment?" 'unsafe-eval'":""}${turnstileEnabled?` ${turnstileOrigin}`:""}${adsenseEnabled?` ${adsenseScriptOrigin}`:""}${clarityEnabled?` ${clarityOrigins}`:""}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob:${adsenseEnabled?` ${adsenseScriptOrigin} https://googleads.g.doubleclick.net`:""}`,
+  `img-src 'self' data: blob:${adsenseEnabled?` ${adsenseScriptOrigin} https://googleads.g.doubleclick.net`:""}${clarityEnabled?` ${clarityOrigins}`:""}`,
   "font-src 'self'",
-  `connect-src 'self'${isDevelopment?" ws: wss:":""}${adsenseEnabled?` ${adsenseScriptOrigin} https://googleads.g.doubleclick.net`:""}`,
+  `connect-src 'self'${isDevelopment?" ws: wss:":""}${adsenseEnabled?` ${adsenseScriptOrigin} https://googleads.g.doubleclick.net`:""}${clarityEnabled?` ${clarityOrigins}`:""}`,
   `frame-src 'self'${turnstileEnabled?` ${turnstileOrigin}`:""}${adsenseEnabled?` ${adsenseFrameOrigins}`:""}`,
   "base-uri 'self'",
   "form-action 'self'",
