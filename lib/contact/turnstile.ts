@@ -10,14 +10,23 @@ export type TurnstileResult={ok:true;mode:"disabled"|"verified"|"development-byp
 
 const enabled=(value:string|undefined)=>value?.trim().toLowerCase()==="true";
 
+export function turnstileDevelopmentBypassIsEnabled(){
+  return process.env.NODE_ENV==="development"&&enabled(process.env.TURNSTILE_DEV_BYPASS);
+}
+
+export function turnstileSiteKeyForClient(){
+  if(turnstileDevelopmentBypassIsEnabled())return null;
+  return process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()||null;
+}
+
 export async function verifyTurnstileToken({token,remoteIp,requestId}:{token:string;remoteIp?:string;requestId:string}):Promise<TurnstileResult>{
   const siteKey=process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()??"";
   const secret=process.env.TURNSTILE_SECRET_KEY?.trim()??"";
   const required=enabled(process.env.TURNSTILE_REQUIRED);
-  const developmentBypass=process.env.NODE_ENV==="development"&&enabled(process.env.TURNSTILE_DEV_BYPASS);
+  const developmentBypass=turnstileDevelopmentBypassIsEnabled();
 
+  if(developmentBypass)return {ok:true,mode:"development-bypass"};
   if(!siteKey&&!secret&&!required)return {ok:true,mode:"disabled"};
-  if((!siteKey||!secret)&&developmentBypass)return {ok:true,mode:"development-bypass"};
   if(!siteKey||!secret)return {ok:false,reason:"configuration"};
   if(!token)return {ok:false,reason:"missing-token"};
 
